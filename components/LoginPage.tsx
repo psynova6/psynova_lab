@@ -1,0 +1,180 @@
+import React, { useState, useEffect } from 'react';
+import { UserIcon, TherapistIcon } from './common/icons';
+import Logo from './layout/Logo';
+import type { Role } from '../types';
+
+interface LoginPageProps {
+    onLoginSuccess: (userName: string, rememberMe: boolean, role: Role) => void;
+}
+
+// --- Local Icon Component ---
+const InstitutionIcon = ({ className }: { className?: string }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 1L3 5v2h18V5L12 1zM4 9v11h16V9H4zm2 2h2v7H6v-7zm4 0h2v7h-2v-7zm4 0h2v7h-2v-7z" />
+    </svg>
+);
+
+// --- Mock Data ---
+const MOCK_INSTITUTIONS = ['University of Wellness', 'Mindful Learning College', 'Serenity Institute of Technology'];
+const MOCK_THERAPISTS = ['Dr. Ananya Sharma', 'Rohan Verma', 'Priya Desai', 'Dr. Meera Krishnan'];
+
+const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
+    const [role, setRole] = useState<Role | null>(null);
+    const [formType, setFormType] = useState<'login' | 'signup'>('login');
+
+    // Form state
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [rememberMe, setRememberMe] = useState(true);
+    const [institution, setInstitution] = useState(MOCK_INSTITUTIONS[0]);
+    const [isVolunteer, setIsVolunteer] = useState(false);
+    const [supervisor, setSupervisor] = useState(MOCK_THERAPISTS[0]);
+
+    const resetForm = () => {
+        setName('');
+        setEmail('');
+        setPassword('');
+        setRememberMe(true);
+        setInstitution(MOCK_INSTITUTIONS[0]);
+        setIsVolunteer(false);
+        setSupervisor(MOCK_THERAPISTS[0]);
+    };
+
+    useEffect(() => {
+        resetForm();
+    }, [role, formType]);
+
+    const handleAuth = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!role) return;
+
+        let loginName = 'WARRIOR';
+        if (name) {
+            loginName = name;
+        } else if (email) {
+            loginName = email.split('@')[0] || 'User';
+        }
+        onLoginSuccess(loginName, rememberMe, role);
+    };
+
+    const renderFormFields = () => {
+
+        return (
+            <form onSubmit={handleAuth} className="space-y-4">
+                {formType === 'signup' && (
+                    <InputField label={role === 'institution' ? "Principal's Name" : "Full Name"} type="text" value={name} onChange={e => setName(e.target.value)} />
+                )}
+                <InputField label={role === 'institution' ? "Official Email" : "Email"} type="email" value={email} onChange={e => setEmail(e.target.value)} />
+                <InputField label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} />
+
+                {formType === 'login' && (
+                    <div className="py-2">
+                        <CheckboxField label="Remember Me" checked={rememberMe} onChange={e => setRememberMe(e.target.checked)} id="remember-me" />
+                    </div>
+                )}
+
+                {formType === 'signup' && role === 'student' && (
+                    <SelectField label="Select your Institution" value={institution} onChange={e => setInstitution(e.target.value)}>
+                        {MOCK_INSTITUTIONS.map(inst => <option key={inst} value={inst}>{inst}</option>)}
+                    </SelectField>
+                )}
+
+                {formType === 'signup' && role === 'therapist' && (
+                    <>
+                        <SelectField label="Select your Institution" value={institution} onChange={e => setInstitution(e.target.value)}>
+                            <option value="N/A">N/A (Independent)</option>
+                            {MOCK_INSTITUTIONS.map(inst => <option key={inst} value={inst}>{inst}</option>)}
+                        </SelectField>
+                        <CheckboxField label="I am a volunteer" checked={isVolunteer} onChange={e => setIsVolunteer(e.target.checked)} />
+                        {isVolunteer && (
+                            <SelectField label="Select Supervising Therapist" value={supervisor} onChange={e => setSupervisor(e.target.value)}>
+                                {MOCK_THERAPISTS.map(ther => <option key={ther} value={ther}>{ther}</option>)}
+                            </SelectField>
+                        )}
+                    </>
+                )}
+
+                <button type="submit" className="w-full bg-brand-dark-green text-white font-semibold py-3 px-6 rounded-full hover:bg-brand-light-green hover:text-brand-dark-green transition-colors duration-300">
+                    {formType === 'login' ? 'Login' : 'Sign Up'}
+                </button>
+            </form>
+        );
+    }
+
+    return (
+        <div className="bg-brand-background min-h-screen font-sans text-brand-dark-green flex items-center justify-center p-4">
+            {!role ? (
+                <RoleSelection onSelectRole={setRole} />
+            ) : (
+                <div className="w-full max-w-md bg-white/70 backdrop-blur-sm rounded-[2rem] shadow-xl p-6 sm:p-8 animate-fade-in-down relative">
+                    <button onClick={() => setRole(null)} aria-label="Back to role selection" className="absolute top-4 left-4 p-2 w-12 h-12 flex items-center justify-center text-3xl rounded-full text-brand-dark-green/60 hover:text-brand-dark-green hover:bg-black/10 transition-colors">&larr;</button>
+                    <h2 className="text-3xl font-bold text-center text-brand-dark-green mb-2 capitalize">{role} Portal</h2>
+
+                    <div className="flex justify-center border-b border-brand-light-green/50 mb-6">
+                        <TabButton title="Login" isActive={formType === 'login'} onClick={() => setFormType('login')} />
+                        <TabButton title="Sign Up" isActive={formType === 'signup'} onClick={() => setFormType('signup')} />
+                    </div>
+
+                    {renderFormFields()}
+                </div>
+            )}
+        </div>
+    );
+};
+
+// FIX: Passed setRole as a prop (onSelectRole) to fix scope issue.
+const RoleSelection: React.FC<{ onSelectRole: (role: Role) => void }> = ({ onSelectRole }) => (
+    <div className="text-center animate-fade-in-down flex flex-col items-center">
+        <div className="mb-6 sm:mb-8 text-center flex justify-center">
+            <Logo className="h-48 sm:h-56 md:h-64 w-auto" />
+        </div>
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-brand-dark-green mb-2 sm:mb-4">Welcome</h1>
+        <p className="text-sm sm:text-base md:text-lg text-brand-dark-green/80 mb-6 sm:mb-8 md:mb-10">Select your role to continue</p>
+        <div className="flex gap-3 sm:gap-4 md:gap-6 max-w-4xl mx-auto w-full px-4">
+            <RoleCard icon={<InstitutionIcon className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12" />} title="Institution" onClick={() => onSelectRole('institution')} />
+            <RoleCard icon={<UserIcon className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12" />} title="Student" onClick={() => onSelectRole('student')} />
+            <RoleCard icon={<TherapistIcon className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12" />} title="Therapist" onClick={() => onSelectRole('therapist')} />
+        </div>
+    </div>
+);
+
+const RoleCard = ({ icon, title, onClick }: { icon: React.ReactNode, title: string, onClick: () => void }) => (
+    <button onClick={onClick} className="group bg-white/50 p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-[2rem] shadow-md hover:shadow-xl hover:scale-105 transition-all duration-300 flex flex-col items-center gap-2 sm:gap-3 md:gap-4 flex-1 min-h-[140px] sm:min-h-[160px]">
+        <div className="text-brand-dark-green group-hover:text-brand-light-green transition-colors">{icon}</div>
+        <h3 className="text-base sm:text-lg md:text-2xl font-semibold text-brand-dark-green">{title}</h3>
+    </button>
+);
+
+// --- Form Field Components ---
+const InputField: React.FC<React.InputHTMLAttributes<HTMLInputElement> & { label: string }> = ({ label, ...props }) => (
+    <div>
+        <label htmlFor={props.id || props.name} className="block text-sm font-medium text-brand-dark-green/80 mb-1">{label}</label>
+        <input {...props} className="w-full px-4 py-2 border border-brand-light-green/50 rounded-full focus:ring-brand-dark-green focus:border-brand-dark-green bg-white/50" />
+    </div>
+);
+
+const SelectField: React.FC<React.SelectHTMLAttributes<HTMLSelectElement> & { label: string }> = ({ label, children, ...props }) => (
+    <div>
+        <label htmlFor={props.id || props.name} className="block text-sm font-medium text-brand-dark-green/80 mb-1">{label}</label>
+        <select {...props} className="w-full px-4 py-2 border border-brand-light-green/50 rounded-full focus:ring-brand-dark-green focus:border-brand-dark-green bg-white/50 appearance-none">
+            {children}
+        </select>
+    </div>
+);
+
+const CheckboxField: React.FC<React.InputHTMLAttributes<HTMLInputElement> & { label: string }> = ({ label, ...props }) => (
+    <div className="flex items-center">
+        <input type="checkbox" {...props} className="h-4 w-4 text-brand-dark-green border-gray-300 rounded focus:ring-brand-dark-green" />
+        <label htmlFor={props.id || props.name} className="ml-2 block text-sm text-brand-dark-green/80">{label}</label>
+    </div>
+);
+
+const TabButton: React.FC<{ title: string; isActive: boolean; onClick: () => void }> = ({ title, isActive, onClick }) => (
+    <button onClick={onClick} className={`py-2 px-6 font-semibold transition-colors text-center ${isActive ? 'text-brand-dark-green border-b-2 border-brand-dark-green' : 'text-brand-dark-green/60 hover:text-brand-dark-green'}`}>
+        {title}
+    </button>
+);
+
+
+export default LoginPage;
