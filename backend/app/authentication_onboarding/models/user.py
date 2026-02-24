@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from typing import Optional
 
 from beanie import Document, Indexed
-from pydantic import EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field
 
 
 class Role(str, enum.Enum):
@@ -18,6 +18,22 @@ class Role(str, enum.Enum):
     ADMIN = "admin"
 
 
+class ConsentRecord(BaseModel):
+    """Record of a specific consent action."""
+
+    granted: bool = False
+    granted_at: Optional[datetime] = None
+    revoked_at: Optional[datetime] = None
+    version: Optional[str] = None
+
+
+class ConsentFlags(BaseModel):
+    """Aggregate of user consent flags."""
+
+    marketing: ConsentRecord = Field(default_factory=ConsentRecord)
+    data_sharing: ConsentRecord = Field(default_factory=ConsentRecord)
+
+
 class User(Document):
     """Represents a platform user stored in MongoDB."""
 
@@ -25,11 +41,11 @@ class User(Document):
     phone: Optional[str] = None
     hashed_password: str
 
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
+    first_name: Optional[str] = Field(None, max_length=64)
+    last_name: Optional[str] = Field(None, max_length=64)
     language: str = "en"
     preferences: dict = Field(default_factory=dict)
-    consent_flags: dict = Field(default_factory=lambda: {"marketing": False, "data_sharing": False})
+    consent_flags: ConsentFlags = Field(default_factory=ConsentFlags)
 
     role: Role = Role.STUDENT
     institution_id: Optional[str] = None
@@ -38,9 +54,6 @@ class User(Document):
     is_verified: bool = False
     is_blocked: bool = False
     failed_login_attempts: int = 0
-
-    consent_given_at: Optional[datetime] = None
-    consent_version: Optional[str] = None
 
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

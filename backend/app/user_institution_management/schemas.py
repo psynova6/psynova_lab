@@ -3,7 +3,7 @@ Pydantic schemas for User & Institution Management.
 """
 
 from typing import List, Optional, Dict
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from datetime import datetime
 
 # --- Institution Schemas ---
@@ -28,12 +28,14 @@ class InstitutionResponse(InstitutionBase):
     id: str
     is_active: bool
     created_at: datetime
+    model_config = ConfigDict(from_attributes=True)
 
 # --- User Profile & Role Schemas ---
 
 class UserProfileUpdate(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
+    email: Optional[EmailStr] = None
     language: Optional[str] = None
     preferences: Optional[Dict] = None
     consent_flags: Optional[Dict] = None
@@ -41,7 +43,7 @@ class UserProfileUpdate(BaseModel):
 class RoleAssignment(BaseModel):
     user_id: str
     institution_id: str
-    roles: List[str]
+    roles: List[str] = Field(..., min_length=1)
 
 class UserInstitutionResponse(BaseModel):
     id: str
@@ -50,3 +52,4 @@ class UserInstitutionResponse(BaseModel):
     roles: List[str]
     is_active: bool
     joined_at: datetime
+    model_config = ConfigDict(from_attributes=True)

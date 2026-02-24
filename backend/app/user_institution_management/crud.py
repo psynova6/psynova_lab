@@ -3,11 +3,18 @@ CRUD and service logic for User & Institution Management.
 """
 
 from typing import List, Optional
-from beanie import PydanticObjectId
+from beanie import PydanticObjectId, UpdateResponse
+from bson.errors import InvalidId
 from .models import Institution, InstitutionUser
 from app.authentication_onboarding.models.user import User, Role
 from .schemas import InstitutionCreate, InstitutionUpdate, UserProfileUpdate
 from datetime import datetime, timezone
+
+def validate_id(oid: str, entity_name: str = "ID") -> PydanticObjectId:
+    try:
+        return PydanticObjectId(oid)
+    except InvalidId:
+        raise ValueError(f"Invalid {entity_name} format")
 
 class UserInstitutionService:
     # --- Institution CRUD ---
@@ -19,61 +26,64 @@ class UserInstitutionService:
 
     @staticmethod
     async def get_institution(institution_id: str) -> Optional[Institution]:
-        return await Institution.get(institution_id)
+        oid = validate_id(institution_id, "Institution ID")
+        return await Institution.get(oid)
 
     @staticmethod
     async def update_institution(institution_id: str, data: InstitutionUpdate) -> Optional[Institution]:
-        institution = await Institution.get(institution_id)
+        oid = validate_id(institution_id, "Institution ID")
+        institution = await Institution.get(oid)
         if institution:
             update_data = data.model_dump(exclude_unset=True)
-            for key, value in update_data.items():
-                setattr(institution, key, value)
-            institution.updated_at = datetime.now(timezone.utc)
-            await institution.save()
-        return institution
+            # Re-validate against model if needed, then update atomically
+            await institution.update({"$set": update_data})
+            return await Institution.get(oid)
+        return None
 
     @staticmethod
     async def soft_delete_institution(institution_id: str) -> bool:
-        institution = await Institution.get(institution_id)
+        oid = validate_id(institution_id, "Institution ID")
+        institution = await Institution.get(oid)
         if institution:
-            institution.is_active = False
-            institution.updated_at = datetime.now(timezone.utc)
-            await institution.save()
+            await institution.update({"$set": {"is_active": False}})
             return True
         return False
 
     # --- User Profile Management ---
     @staticmethod
     async def update_user_profile(user_id: str, data: UserProfileUpdate) -> Optional[User]:
-        user = await User.get(user_id)
+        oid = validate_id(user_id, "User ID")
+        user = await User.get(oid)
         if user:
             update_data = data.model_dump(exclude_unset=True)
-            for key, value in update_data.items():
-                setattr(user, key, value)
-            user.updated_at = datetime.now(timezone.utc)
-            await user.save()
-        return user
+            await user.update({"$set": update_data})
+            return await User.get(oid)
+        return None
 
     # --- Relationships & Roles ---
     @staticmethod
-    async def link_user_to_institution(user_id: str, institution_id: str, roles: List[str]) -> InstitutionUser:
-        user = await User.get(user_id)
-        institution = await Institution.get(institution_id)
-        if not user or not institution:
-            raise ValueError("User or Institution not found")
+    async def link_user_to_institution(user_id: str, institution_id: str, roles: List[Role]) -> InstitutionUser:
+        u_oid = validate_id(user_id, "User ID")
+        i_oid = validate_id(institution_id, "Institution ID")
         
-        # Check if already exists
+        user = await User.get(u_oid)
+        if not user:
+            raise ValueError(f"User with ID {user_id} not found")
+            
+        institution = await Institution.get(i_oid)
+        if not institution:
+            raise ValueError(f"Institution with ID {institution_id} not found")
+        
+        # Atomic Upsert Attempt
         rel = await InstitutionUser.find_one(
-            InstitutionUser.user.id == PydanticObjectId(user_id),
-            InstitutionUser.institution.id == PydanticObjectId(institution_id)
+            InstitutionUser.user.id == u_oid,
+            InstitutionUser.institution.id == i_oid
         )
         
         if rel:
-            rel.roles = list(set(rel.roles + roles))
-            rel.is_active = True
-            rel.updated_at = datetime.now(timezone.utc)
-            await rel.save()
-            return rel
+            # Atomic update of roles/is_active
+            await rel.update({"$set": {"is_active": True}, "$addToSet": {"roles": {"$each": roles}}})
+            return await InstitutionUser.find_one(InstitutionUser.user.id == u_oid, InstitutionUser.institution.id == i_oid)
         
         new_rel = InstitutionUser(user=user, institution=institution, roles=roles)
         await new_rel.insert()
@@ -81,9 +91,11 @@ class UserInstitutionService:
 
     @staticmethod
     async def unlink_user_from_institution(user_id: str, institution_id: str) -> bool:
+        u_oid = validate_id(user_id, "User ID")
+        i_oid = validate_id(institution_id, "Institution ID")
         rel = await InstitutionUser.find_one(
-            InstitutionUser.user.id == PydanticObjectId(user_id),
-            InstitutionUser.institution.id == PydanticObjectId(institution_id)
+            InstitutionUser.user.id == u_oid,
+            InstitutionUser.institution.id == i_oid
         )
         if rel:
             rel.is_active = False

@@ -1,9 +1,8 @@
 import os
-import base64
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
-# Simple test key
-TEST_KEY = b"12345678901234567890123456789012" # 32 bytes
+# Generate a fresh key for each test run
+TEST_KEY = AESGCM.generate_key(bit_length=256)
 aesgcm = AESGCM(TEST_KEY)
 
 def test_encryption():

@@ -7,7 +7,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ icon, title, description, act
       <div className="bg-brand-gradient p-4 rounded-full mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
         {React.isValidElement(icon)
           ? React.cloneElement(icon as React.ReactElement<{ className?: string }>, {
-            className: 'w-8 h-8 text-white'
+            className: `${(icon as React.ReactElement<{ className?: string }>).props.className || ''} w-8 h-8 text-white`.trim()
           })
           : icon}
       </div>

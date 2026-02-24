@@ -1,27 +1,32 @@
-import os
-import base64
+import logging
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from cryptography.exceptions import InvalidTag
+from typing import Optional
 from app.config import settings
 
-# A 32-byte (256-bit) key is required for AES-256-GCM
-# In a real production environment, this should be fetched from a Key Management Service (KMS)
-MASTER_KEY = os.getenv("ENCRYPTION_MASTER_KEY", "default-32-byte-key-placeholder-1234")
+logger = logging.getLogger(__name__)
 
-# Ensure the key is exactly 32 bytes for AES-256
-if len(MASTER_KEY.encode()) < 32:
-    MASTER_KEY = MASTER_KEY.ljust(32, "0")[:32]
-elif len(MASTER_KEY.encode()) > 32:
-    MASTER_KEY = MASTER_KEY.encode()[:32].decode()
+# Load and validate the master key from environment
+ENV_KEY = os.getenv("ENCRYPTION_MASTER_KEY")
+if not ENV_KEY:
+    raise SystemExit("ENCRYPTION_MASTER_KEY environment variable is not set.")
 
-aesgcm = AESGCM(MASTER_KEY.encode())
+try:
+    MASTER_KEY = base64.b64decode(ENV_KEY)
+    if len(MASTER_KEY) != 32:
+        raise ValueError(f"Expected 32-byte key after decoding, got {len(MASTER_KEY)} bytes.")
+except Exception as e:
+    raise SystemExit(f"Invalid ENCRYPTION_MASTER_KEY: {e}")
 
-def encrypt_field(data: str) -> str:
+aesgcm = AESGCM(MASTER_KEY)
+
+def encrypt_field(data: Optional[str]) -> Optional[str]:
     """
     Encrypts a string field using AES-256-GCM.
     Returns a base64 encoded string containing [nonce][ciphertext].
     """
-    if not data:
-        return data
+    if data is None:
+        return None
         
     nonce = os.urandom(12)  # Recommended nonce size for GCM is 12 bytes
     ciphertext = aesgcm.encrypt(nonce, data.encode(), None)
@@ -30,13 +35,13 @@ def encrypt_field(data: str) -> str:
     encrypted_blob = nonce + ciphertext
     return base64.b64encode(encrypted_blob).decode('utf-8')
 
-def decrypt_field(encrypted_data: str) -> str:
+def decrypt_field(encrypted_data: Optional[str]) -> Optional[str]:
     """
     Decrypts a base64 encoded string using AES-256-GCM.
     Expects [nonce][ciphertext] format.
     """
-    if not encrypted_data:
-        return encrypted_data
+    if encrypted_data is None:
+        return None
         
     try:
         decoded_blob = base64.b64decode(encrypted_data.encode('utf-8'))
@@ -45,11 +50,12 @@ def decrypt_field(encrypted_data: str) -> str:
         
         decrypted_data = aesgcm.decrypt(nonce, ciphertext, None)
         return decrypted_data.decode('utf-8')
+    except InvalidTag:
+        logger.error("Decryption failed: Invalid tag (tampering detected)")
+        raise
     except Exception as e:
-        # In case of decryption failure, return original or log error
-        # In a real app, you might want to raise a specific exception
-        print(f"Decryption failed: {e}")
-        return "[DECRYPTION_FAILED]"
+        logger.error(f"Decryption failed: {e}")
+        raise
 
 if __name__ == "__main__":
     # Quick test

@@ -287,7 +287,7 @@ function StudentDashboard({ userProfile, onLogout, onProfileUpdate }: StudentDas
           <DailyAffirmation affirmation={dailyAffirmation} />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 mb-12 md:mb-16 items-stretch">
-            <div className="animate-fade-up delay-100">
+            <div className="animate-fade-up [animation-delay:100ms]">
               <FeatureCard
                 icon={<RobotIcon className="w-8 h-8 text-brand-dark-green" />}
                 title="AI Chatbot 'Syna'"
@@ -296,7 +296,7 @@ function StudentDashboard({ userProfile, onLogout, onProfileUpdate }: StudentDas
                 onClick={() => setIsChatOpen(true)}
               />
             </div>
-            <div className="animate-fade-up delay-200">
+            <div className="animate-fade-up [animation-delay:200ms]">
               <FeatureCard
                 icon={<ToolsIcon className="w-8 h-8 text-brand-dark-green" />}
                 title="Coping Tools"
@@ -305,7 +305,7 @@ function StudentDashboard({ userProfile, onLogout, onProfileUpdate }: StudentDas
                 onClick={() => setIsCopingToolsOpen(true)}
               />
             </div>
-            <div className="animate-fade-up delay-300">
+            <div className="animate-fade-up [animation-delay:300ms]">
               <FeatureCard
                 icon={<TherapistIcon className="w-8 h-8 text-brand-dark-green" />}
                 title="Connect with Therapists"
@@ -314,7 +314,7 @@ function StudentDashboard({ userProfile, onLogout, onProfileUpdate }: StudentDas
                 onClick={hasPremiumPlan ? () => setIsTherapistModalOpen(true) : () => setIsSubscriptionOpen(true)}
               />
             </div>
-            <div className="animate-fade-up delay-400">
+            <div className="animate-fade-up [animation-delay:400ms]">
               <FeatureCard
                 icon={<AlarmClockIcon className="w-8 h-8 text-brand-dark-green" />}
                 title="Set a Reminder"
