@@ -286,35 +286,43 @@ function StudentDashboard({ userProfile, onLogout, onProfileUpdate }: StudentDas
           <WelcomeBanner userName={userProfile.name} />
           <DailyAffirmation affirmation={dailyAffirmation} />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-12 md:mb-16 items-stretch">
-            <FeatureCard
-              icon={<RobotIcon className="w-8 h-8 text-brand-dark-green" />}
-              title="AI Chatbot 'Syna'"
-              description="Talk about what's on your mind in a safe, confidential space. Our AI is here to listen 24/7."
-              actionText="Start Chatting"
-              onClick={() => setIsChatOpen(true)}
-            />
-            <FeatureCard
-              icon={<ToolsIcon className="w-8 h-8 text-brand-dark-green" />}
-              title="Coping Tools"
-              description="Access a library of guided exercises, mindfulness games, and journaling prompts to help you manage stress."
-              actionText="Explore Tools"
-              onClick={() => setIsCopingToolsOpen(true)}
-            />
-            <FeatureCard
-              icon={<TherapistIcon className="w-8 h-8 text-brand-dark-green" />}
-              title="Connect with Therapists"
-              description="Ready for the next step? Upgrade to connect with professional therapists for personalized guidance."
-              actionText={hasPremiumPlan ? 'CONNECT' : 'View Plans'}
-              onClick={hasPremiumPlan ? () => setIsTherapistModalOpen(true) : () => setIsSubscriptionOpen(true)}
-            />
-            <FeatureCard
-              icon={<AlarmClockIcon className="w-8 h-8 text-brand-dark-green" />}
-              title="Set a Reminder"
-              description="Create reminders for tasks, appointments, or self-care moments to stay on track with your goals."
-              actionText="Add Reminder"
-              onClick={() => setIsReminderModalOpen(true)}
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 mb-12 md:mb-16 items-stretch">
+            <div className="animate-fade-up delay-100">
+              <FeatureCard
+                icon={<RobotIcon className="w-8 h-8 text-brand-dark-green" />}
+                title="AI Chatbot 'Syna'"
+                description="Talk about what's on your mind in a safe, confidential space. Our AI is here to listen 24/7."
+                actionText="Start Chatting"
+                onClick={() => setIsChatOpen(true)}
+              />
+            </div>
+            <div className="animate-fade-up delay-200">
+              <FeatureCard
+                icon={<ToolsIcon className="w-8 h-8 text-brand-dark-green" />}
+                title="Coping Tools"
+                description="Access a library of guided exercises, mindfulness games, and journaling prompts to help you manage stress."
+                actionText="Explore Tools"
+                onClick={() => setIsCopingToolsOpen(true)}
+              />
+            </div>
+            <div className="animate-fade-up delay-300">
+              <FeatureCard
+                icon={<TherapistIcon className="w-8 h-8 text-brand-dark-green" />}
+                title="Connect with Therapists"
+                description="Ready for the next step? Upgrade to connect with professional therapists for personalized guidance."
+                actionText={hasPremiumPlan ? 'CONNECT' : 'View Plans'}
+                onClick={hasPremiumPlan ? () => setIsTherapistModalOpen(true) : () => setIsSubscriptionOpen(true)}
+              />
+            </div>
+            <div className="animate-fade-up delay-400">
+              <FeatureCard
+                icon={<AlarmClockIcon className="w-8 h-8 text-brand-dark-green" />}
+                title="Set a Reminder"
+                description="Create reminders for tasks, appointments, or self-care moments to stay on track with your goals."
+                actionText="Add Reminder"
+                onClick={() => setIsReminderModalOpen(true)}
+              />
+            </div>
           </div>
 
           <Suspense fallback={<div className="h-96" />}>

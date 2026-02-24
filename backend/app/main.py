@@ -68,9 +68,11 @@ from app.authentication_onboarding import router as auth_onboarding_router  # no
 
 app.include_router(auth_onboarding_router)
 
-# 2. (Future components go here)
-# from app.another_component import router as another_router
-# app.include_router(another_router)
+# 2. User & Institution Management
+from app.user_institution_management import router as management_router
+app.include_router(management_router)
+
+# 3. (Future components go here)
 
 
 @app.get("/", tags=["Health"])

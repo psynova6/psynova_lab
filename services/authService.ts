@@ -100,9 +100,6 @@ export const authService = {
 
     async logout(refreshToken: string) {
         const response = await apiClient.post('/logout', { refresh_token: refreshToken });
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('isAuthenticated');
         return response.data;
     },
 };

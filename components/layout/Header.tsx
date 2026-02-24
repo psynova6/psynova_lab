@@ -64,11 +64,11 @@ const Header: React.FC<HeaderProps> = ({
   }
 
   return (
-    <header className="bg-brand-background/80 backdrop-blur-sm z-40">
+    <header className="sticky top-0 bg-brand-background/80 backdrop-blur-md z-40 border-b border-white/30 transition-all duration-300">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-24 md:h-32">
+        <div className="flex items-center justify-between h-20 md:h-24">
           <div className="flex items-center min-w-0 ml-2 md:ml-6">
-            <Logo className="h-32 sm:h-40 md:h-48 w-auto" />
+            <Logo className="h-14 md:h-20 w-auto transition-all duration-300 drop-shadow-[0_4px_12px_rgba(0,0,0,0.1)]" />
           </div>
           <div className="flex items-center space-x-2 flex-shrink-0">
             <div className="relative" ref={notificationsRef}>

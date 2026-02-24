@@ -25,6 +25,12 @@ class User(Document):
     phone: Optional[str] = None
     hashed_password: str
 
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    language: str = "en"
+    preferences: dict = Field(default_factory=dict)
+    consent_flags: dict = Field(default_factory=lambda: {"marketing": False, "data_sharing": False})
+
     role: Role = Role.STUDENT
     institution_id: Optional[str] = None
 

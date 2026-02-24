@@ -167,7 +167,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
 const RoleSelection: React.FC<{ onSelectRole: (role: Role) => void }> = ({ onSelectRole }) => (
     <div className="text-center animate-fade-in-down flex flex-col items-center">
         <div className="mb-6 sm:mb-8 text-center flex justify-center">
-            <Logo className="h-48 sm:h-56 md:h-64 w-auto" />
+            <Logo className="h-64 sm:h-72 md:h-80 w-auto drop-shadow-2xl" />
         </div>
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-brand-dark-green mb-2 sm:mb-4">Welcome</h1>
         <p className="text-sm sm:text-base md:text-lg text-brand-dark-green/80 mb-6 sm:mb-8 md:mb-10">Select your role to continue</p>

@@ -76,14 +76,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const logout = useCallback(async () => {
         const refreshToken = localStorage.getItem('refreshToken');
-        if (refreshToken) {
-            try {
-                await authService.logout(refreshToken);
-            } catch (e) {
-                console.error('Logout error:', e);
-            }
-        }
 
+        // --- UX First: Clear local state immediately ---
         localStorage.removeItem('isAuthenticated');
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
@@ -91,6 +85,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
         setIsAuthenticated(false);
         setRole(null);
+
+        // --- Backend Revocation (Best Effort) ---
+        if (refreshToken) {
+            try {
+                // We use a best-effort call here. If it fails (e.g., 401), we've already logged out locally.
+                await authService.logout(refreshToken);
+            } catch (e) {
+                // Silently log or ignore server-side revocation failure
+                console.warn('Backend session revocation failed or was unnecessary:', e);
+            }
+        }
     }, [setRole]);
 
     const updateProfile = useCallback((newProfile: UserProfile) => {

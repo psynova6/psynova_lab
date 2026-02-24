@@ -29,10 +29,18 @@ async def connect_db() -> None:
         VerificationToken,
         PasswordResetToken,
     )
+    from app.user_institution_management.models import Institution, InstitutionUser
 
     await init_beanie(
         database=db,
-        document_models=[User, AuthSession, VerificationToken, PasswordResetToken],
+        document_models=[
+            User, 
+            AuthSession, 
+            VerificationToken, 
+            PasswordResetToken,
+            Institution,
+            InstitutionUser
+        ],
     )
 
 
