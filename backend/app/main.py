@@ -1,0 +1,79 @@
+"""
+Psynova Backend — Unified FastAPI application entry point.
+
+All backend components register their routers here so the entire
+backend runs as a single `uvicorn app.main:app` process.
+"""
+
+import logging
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.database import close_db, connect_db
+
+log = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Startup: connect to MongoDB.  Shutdown: close the connection."""
+    await connect_db()
+    log.info("✅ Connected to MongoDB and initialised Beanie ODM.")
+    yield
+    await close_db()
+    log.info("🛑 MongoDB connection closed.")
+
+
+app = FastAPI(
+    title="Psynova Backend API",
+    description=(
+        "Unified backend for Psynova — a privacy-first student mental health platform.\n\n"
+        "Components:\n"
+        "- **Authentication & Onboarding** — signup, login, verification, sessions\n"
+        "- *(more components will be added here)*"
+    ),
+    version="0.1.0",
+    lifespan=lifespan,
+)
+
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request, exc):
+    log.error(f"Validation error for {request.url}: {exc.errors()}")
+    return JSONResponse(
+        status_code=422,
+        content={"detail": exc.errors()},
+    )
+
+
+# ── CORS (adjust origins for production) ──
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+# ── Register component routers ──
+
+# 1. Authentication & Onboarding
+from app.authentication_onboarding import router as auth_onboarding_router  # noqa: E402
+
+app.include_router(auth_onboarding_router)
+
+# 2. (Future components go here)
+# from app.another_component import router as another_router
+# app.include_router(another_router)
+
+
+@app.get("/", tags=["Health"])
+async def root():
+    """Health check endpoint."""
+    return {"status": "ok", "service": "psynova-backend"}

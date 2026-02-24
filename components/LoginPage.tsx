@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { UserIcon, TherapistIcon } from './common/icons';
 import Logo from './layout/Logo';
 import type { Role } from '../types';
+import { useAuth } from '../hooks/useAuth';
+import VerifyOTP from './VerifyOTP';
 
 interface LoginPageProps {
-    onLoginSuccess: (userName: string, rememberMe: boolean, role: Role) => void;
+    onLoginSuccess: (email: string, password: string, rememberMe: boolean) => Promise<any>;
 }
 
 // --- Local Icon Component ---
@@ -19,8 +21,8 @@ const MOCK_INSTITUTIONS = ['University of Wellness', 'Mindful Learning College',
 const MOCK_THERAPISTS = ['Dr. Ananya Sharma', 'Rohan Verma', 'Priya Desai', 'Dr. Meera Krishnan'];
 
 const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
-    const [role, setRole] = useState<Role | null>(null);
-    const [formType, setFormType] = useState<'login' | 'signup'>('login');
+    const { signup, verify, resendOTP, role, setRole } = useAuth();
+    const [formType, setFormType] = useState<'login' | 'signup' | 'verify'>('login');
 
     // Form state
     const [name, setName] = useState('');
@@ -30,6 +32,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     const [institution, setInstitution] = useState(MOCK_INSTITUTIONS[0]);
     const [isVolunteer, setIsVolunteer] = useState(false);
     const [supervisor, setSupervisor] = useState(MOCK_THERAPISTS[0]);
+    const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
 
     const resetForm = () => {
         setName('');
@@ -39,27 +43,43 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
         setInstitution(MOCK_INSTITUTIONS[0]);
         setIsVolunteer(false);
         setSupervisor(MOCK_THERAPISTS[0]);
+        setError(null);
     };
 
     useEffect(() => {
-        resetForm();
+        if (formType !== 'verify') {
+            resetForm();
+        }
     }, [role, formType]);
 
-    const handleAuth = (e: React.FormEvent) => {
+    const handleAuth = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!role) return;
 
-        let loginName = 'WARRIOR';
-        if (name) {
-            loginName = name;
-        } else if (email) {
-            loginName = email.split('@')[0] || 'User';
+        setLoading(true);
+        setError(null);
+
+        try {
+            if (formType === 'login') {
+                await onLoginSuccess(email, password, rememberMe);
+            } else {
+                await signup({
+                    email,
+                    password,
+                    role,
+                    institution_id: institution,
+                    phone: null
+                });
+                setFormType('verify');
+            }
+        } catch (err: any) {
+            setError(err.response?.data?.detail || 'An error occurred during authentication.');
+        } finally {
+            setLoading(false);
         }
-        onLoginSuccess(loginName, rememberMe, role);
     };
 
     const renderFormFields = () => {
-
         return (
             <form onSubmit={handleAuth} className="space-y-4">
                 {formType === 'signup' && (
@@ -67,6 +87,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                 )}
                 <InputField label={role === 'institution' ? "Official Email" : "Email"} type="email" value={email} onChange={e => setEmail(e.target.value)} />
                 <InputField label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} />
+
+                {error && <p className="text-red-500 text-sm">{error}</p>}
 
                 {formType === 'login' && (
                     <div className="py-2">
@@ -95,10 +117,27 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                     </>
                 )}
 
-                <button type="submit" className="w-full bg-brand-dark-green text-white font-semibold py-3 px-6 rounded-full hover:bg-brand-light-green hover:text-brand-dark-green transition-colors duration-300">
-                    {formType === 'login' ? 'Login' : 'Sign Up'}
+                <button type="submit" disabled={loading} className="w-full bg-brand-dark-green text-white font-semibold py-3 px-6 rounded-full hover:bg-brand-light-green hover:text-brand-dark-green transition-colors duration-300 disabled:opacity-50">
+                    {loading ? (formType === 'login' ? 'Logging in...' : 'Signing up...') : (formType === 'login' ? 'Login' : 'Sign Up')}
                 </button>
             </form>
+        );
+    }
+
+    if (formType === 'verify') {
+        return (
+            <div className="bg-brand-background min-h-screen font-sans text-brand-dark-green flex items-center justify-center p-4">
+                <VerifyOTP
+                    email={email}
+                    onVerifySuccess={async (code) => {
+                        await verify(email, code);
+                        alert('Verification successful! You can now log in.');
+                        setFormType('login');
+                    }}
+                    onResend={() => resendOTP(email)}
+                    onCancel={() => setFormType('signup')}
+                />
+            </div>
         );
     }
 
@@ -123,7 +162,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     );
 };
 
-// FIX: Passed setRole as a prop (onSelectRole) to fix scope issue.
+// --- Helper Components ---
+
 const RoleSelection: React.FC<{ onSelectRole: (role: Role) => void }> = ({ onSelectRole }) => (
     <div className="text-center animate-fade-in-down flex flex-col items-center">
         <div className="mb-6 sm:mb-8 text-center flex justify-center">
@@ -146,7 +186,6 @@ const RoleCard = ({ icon, title, onClick }: { icon: React.ReactNode, title: stri
     </button>
 );
 
-// --- Form Field Components ---
 const InputField: React.FC<React.InputHTMLAttributes<HTMLInputElement> & { label: string }> = ({ label, ...props }) => (
     <div>
         <label htmlFor={props.id || props.name} className="block text-sm font-medium text-brand-dark-green/80 mb-1">{label}</label>
@@ -175,6 +214,5 @@ const TabButton: React.FC<{ title: string; isActive: boolean; onClick: () => voi
         {title}
     </button>
 );
-
 
 export default LoginPage;
