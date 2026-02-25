@@ -12,7 +12,6 @@
     "android:build": "npm run build && npx cap sync android"
   },
   "dependencies": {
-    "@capacitor/android": "^7.4.4",
     "@capacitor/cli": "^7.4.4",
     "@capacitor/core": "^7.4.4",
     "axios": "^1.13.5",
