@@ -10,12 +10,20 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
-*.local
+# Environment variables
+.env
+.env.*
+!.env.example
 
+# Python
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
 # Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
+.vscode/
+.idea/
 .DS_Store
 *.suo
 *.ntvs*
