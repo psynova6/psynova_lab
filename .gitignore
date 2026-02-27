@@ -30,3 +30,9 @@ __pycache__/
 *.njsproj
 *.sln
 *.sw?
+
+.env
+.venv/
+venv/
+__pycache__/
+*.pyc
