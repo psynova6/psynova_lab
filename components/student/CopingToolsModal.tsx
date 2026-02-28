@@ -29,11 +29,12 @@ const tools = [
 
 const CopingToolsModal: React.FC<CopingToolsModalProps> = ({ isOpen, onClose }) => {
   const [activeTool, setActiveTool] = useState<string | null>(null);
+  const [activeGameUrl, setActiveGameUrl] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
   const handleToolClick = (toolName: string) => {
-    if (toolName === 'Guided Breathing') {
+    if (toolName === 'Guided Breathing' || toolName === 'Mindfulness Games') {
       setActiveTool(toolName);
     } else {
       alert(`Tool selected: ${toolName}. This feature is coming soon!`);
@@ -42,16 +43,21 @@ const CopingToolsModal: React.FC<CopingToolsModalProps> = ({ isOpen, onClose }) 
 
   const handleClose = () => {
     setActiveTool(null);
+    setActiveGameUrl(null);
     onClose();
   }
 
   const handleBack = () => {
-    setActiveTool(null);
+    if (activeGameUrl) {
+      setActiveGameUrl(null);
+    } else {
+      setActiveTool(null);
+    }
   }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-brand-background rounded-[2rem] shadow-2xl w-full max-w-2xl min-h-[500px] h-auto max-h-[90vh] flex flex-col">
+      <div className={`bg-brand-background shadow-2xl flex flex-col transition-all duration-300 ${activeGameUrl ? 'w-[95vw] h-[95vh] rounded-2xl' : 'w-full max-w-2xl min-h-[500px] h-auto max-h-[90vh] rounded-[2rem]'}`}>
         <header className="flex items-center justify-between p-4 border-b border-brand-light-green/50">
           <div className="flex items-center gap-2">
             {activeTool && (
@@ -67,8 +73,38 @@ const CopingToolsModal: React.FC<CopingToolsModalProps> = ({ isOpen, onClose }) 
         </header>
 
         <div className="flex-1 overflow-y-auto p-6 md:p-8">
-          {activeTool === 'Guided Breathing' ? (
+          {activeGameUrl ? (
+            <div className="w-full h-full min-h-[500px] border-2 border-brand-light-green/50 rounded-2xl overflow-hidden bg-white">
+              <iframe
+                src={activeGameUrl}
+                className="w-full h-full border-none"
+                title={activeTool || "Embedded Game"}
+                allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+              />
+            </div>
+          ) : activeTool === 'Guided Breathing' ? (
             <BreathingExercise onBack={handleBack} />
+          ) : activeTool === 'Mindfulness Games' ? (
+            <div className="space-y-4">
+              <p className="text-brand-dark-green/80 mb-6 text-center">
+                Select a game to help center your thoughts and relax.
+              </p>
+              <button
+                onClick={() => setActiveGameUrl('/games/zensnap/index.html')}
+                className="w-full flex flex-col p-6 border rounded-3xl text-left bg-gradient-to-br from-indigo-50 to-purple-50 hover:shadow-md hover:border-indigo-200 transition-all duration-300"
+              >
+                <div className="font-bold text-lg text-indigo-900 mb-2">ZenSnap</div>
+                <div className="text-sm text-indigo-700/80">A soothing puzzle game that encourages concentration and pattern recognition in a peaceful environment.</div>
+              </button>
+              <button
+                onClick={() => setActiveGameUrl('/games/mindful-tales/index.html')}
+                className="w-full flex flex-col p-6 border rounded-3xl text-left bg-gradient-to-br from-sage-50 to-emerald-50 hover:shadow-md hover:border-emerald-200 transition-all duration-300"
+                style={{ backgroundImage: 'linear-gradient(to bottom right, #f0fdf4, #ecfdf5)' }}
+              >
+                <div className="font-bold text-lg text-emerald-900 mb-2">Mindful Tales</div>
+                <div className="text-sm text-emerald-700/80">Drag and arrange characters to untangle relaxing stories and discover mindful journeys.</div>
+              </button>
+            </div>
           ) : (
             <>
               <p className="text-brand-dark-green/80 mb-6 text-center">
