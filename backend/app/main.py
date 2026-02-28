@@ -21,10 +21,10 @@ logging.basicConfig(level=logging.INFO)
 async def lifespan(app: FastAPI):
     """Startup: connect to MongoDB.  Shutdown: close the connection."""
     await connect_db()
-    log.info("✅ Connected to MongoDB and initialised Beanie ODM.")
+    log.info("Connected to MongoDB and initialised Beanie ODM.")
     yield
     await close_db()
-    log.info("🛑 MongoDB connection closed.")
+    log.info("MongoDB connection closed.")
 
 
 app = FastAPI(
@@ -72,7 +72,11 @@ app.include_router(auth_onboarding_router)
 from app.user_institution_management import router as management_router
 app.include_router(management_router)
 
-# 3. (Future components go here)
+# 3. Syna AI Chatbot
+from app.syna_ai.router import router as syna_router
+app.include_router(syna_router)
+
+# 4. (Future components go here)
 
 
 @app.get("/", tags=["Health"])

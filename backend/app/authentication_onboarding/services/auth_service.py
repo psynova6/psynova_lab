@@ -66,6 +66,7 @@ async def signup(data: SignupRequest) -> tuple[User, str]:
 
     # Generate & persist OTP
     raw_otp = generate_otp()
+    print(f"\n[DEBUG] Generated OTP for {user.email}: {raw_otp}\n")
     token = VerificationToken(
         user_id=str(user.id),
         code_hash=hash_otp(raw_otp),
@@ -223,6 +224,7 @@ async def resend_verification(email: str) -> None:
         return
 
     raw_otp = generate_otp()
+    print(f"\n[DEBUG] Resent OTP for {user.email}: {raw_otp}\n")
     token = VerificationToken(
         user_id=str(user.id),
         code_hash=hash_otp(raw_otp),

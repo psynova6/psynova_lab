@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import type { Message } from '../../types';
-import { sendMessageToMock } from '../../services/mockChatService';
+import { synaAiService } from '../../services/synaAiService';
 import { UserIcon, SendIcon } from '../common/icons';
 
 interface ChatbotModalProps {
@@ -47,11 +47,23 @@ const ChatbotModal: React.FC<ChatbotModalProps> = ({ isOpen, onClose, chatHistor
     setUserInput('');
     setIsLoading(true);
 
-    const responseText = await sendMessageToMock(currentInput);
-
-    const modelMessage: Message = { role: 'model', text: responseText };
-    onNewMessage([...newMessages, modelMessage]);
-    setIsLoading(false);
+    try {
+      const response = await synaAiService.sendMessage(currentInput);
+      const modelMessage: Message = {
+        role: 'model',
+        text: response.reply
+      };
+      onNewMessage([...newMessages, modelMessage]);
+    } catch (error) {
+      console.error("Syna AI Error:", error);
+      const errorMessage: Message = {
+        role: 'model',
+        text: "I'm having a little trouble connecting right now, but I'm still here with you. Please try again in a moment."
+      };
+      onNewMessage([...newMessages, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (!isOpen) return null;
