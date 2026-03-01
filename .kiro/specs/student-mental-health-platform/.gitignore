@@ -1,0 +1,16 @@
+node_modules/
+venv/
+.venv/
+backend/venv/
+backend/venv_new/
+**/node_modules/
+**/venv/
+**/.venv/
+dist/
+build/
+.vscode/
+.idea/
+.DS_Store
+*.local
+.env
+.env.*

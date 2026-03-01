@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Psynova: Mental Health Support</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'brand-background': '#f2ede4',
+            'brand-dark-green': '#235328',
+            'brand-light-green': '#92bb80',
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          boxShadow: {
+            'premium': '0 8px 30px rgba(0, 0, 0, 0.04)',
+            'premium-hover': '0 20px 40px rgba(146, 187, 128, 0.15)',
+          },
+          backgroundImage: {
+            'glass-gradient': 'linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.2) 100%)',
+            'brand-gradient': 'linear-gradient(135deg, #235328 0%, #92bb80 100%)',
+          }
+        },
+      },
+    };
+  </script>
+  <style>
+    /* Safe area insets for notches, status bars, and rounded corners */
+    body {
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+    }
+
+    /* Android/Mobile-Specific Optimizations */
+    * {
+      /* Smooth scrolling for all elements */
+      -webkit-overflow-scrolling: touch;
+      /* Disable tap highlight on Android */
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Better touch targets - minimum 48px for accessibility */
+    button,
+    a,
+    input,
+    textarea,
+    select {
+      min-height: 44px;
+      touch-action: manipulation;
+    }
+
+    /* Prevent text selection on buttons/cards for better mobile feel */
+    button,
+    .cursor-pointer {
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    /* Smooth momentum scrolling */
+    div,
+    main,
+    section {
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+    }
+
+    /* Improve rendering performance on mobile */
+    .rounded-2xl,
+    .rounded-full,
+    .shadow-lg {
+      -webkit-transform: translateZ(0);
+      transform: translateZ(0);
+      will-change: transform;
+    }
+
+    /* Reduce motion for better performance on low-end devices */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* Mobile-specific font size adjustments */
+    @media (max-width: 640px) {
+      html {
+        font-size: 14px;
+      }
+    }
+
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeInRight {
+      from {
+        opacity: 0;
+        transform: translateX(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .animate-fade-in-down {
+      opacity: 0;
+      animation: fadeInDown 0.8s ease-out both;
+    }
+
+    .animate-fade-up {
+      opacity: 0;
+      animation: fadeInUp 0.8s ease-out forwards;
+    }
+
+    .animate-fade-in-right {
+      opacity: 0;
+      animation: fadeInRight 0.8s ease-out forwards;
+    }
+
+    /* Staggered animation delays */
+    .delay-100 {
+      animation-delay: 100ms;
+    }
+
+    .delay-200 {
+      animation-delay: 200ms;
+    }
+
+    .delay-300 {
+      animation-delay: 300ms;
+    }
+
+    .delay-400 {
+      animation-delay: 400ms;
+    }
+
+    .delay-500 {
+      animation-delay: 500ms;
+    }
+
+    /* Premium Glassmorphism Utility */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/"
+  }
+}
+</script>
+
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+
+</html>

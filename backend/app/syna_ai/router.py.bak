@@ -1,0 +1,9 @@
+# Original router content for backup
+import os
+from fastapi import APIRouter, HTTPException, Depends
+from pydantic import BaseModel
+from typing import List, Optional
+
+router = APIRouter(prefix="/syna", tags=["Syna AI Chatbot"])
+
+# Rest of the functions were here...
