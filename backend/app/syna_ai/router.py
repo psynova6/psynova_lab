@@ -60,6 +60,13 @@ def detect_crisis(text: str) -> bool:
     crisis_phrases = ["i want to die", "i feel like dying", "i want to kill myself", "end my life", "don't want to live", "suicide"]
     return any(phrase in text.lower() for phrase in crisis_phrases)
 
+async def run_db_op(op_func):
+    """Wrapper to run a DB operation function in a separate thread with its own context."""
+    def wrapped_op():
+        with get_db_context() as (conn, cursor):
+            return op_func(conn, cursor)
+    return await asyncio.to_thread(wrapped_op)
+
 @router.post("/chat")
 async def chat(
     request: ChatRequest,
@@ -80,13 +87,6 @@ async def chat(
 
     user_input = request.message
     utils = get_models_and_utils()
-
-    async def run_db_op(op_func):
-        """Wrapper to run a DB operation function in a separate thread with its own context."""
-        def wrapped_op():
-            with get_db_context() as (conn, cursor):
-                return op_func(conn, cursor)
-        return await asyncio.to_thread(wrapped_op)
 
     def crisis_check_and_save(conn, cursor):
         cursor.execute(

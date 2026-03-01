@@ -39,16 +39,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
-
-@app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request, exc):
-    log.error(f"Validation error for {request.url}: {exc.errors()}")
-    return JSONResponse(
-        status_code=422,
-        content={"detail": exc.errors()},
-    )
+# Removed custom validation error handler to fix serialization issues. Default handler will be used.
 
 
 # ── CORS (adjust origins for production) ──
