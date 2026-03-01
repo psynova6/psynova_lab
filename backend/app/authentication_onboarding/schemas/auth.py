@@ -36,6 +36,7 @@ class SignupResponse(BaseModel):
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
+    role: str = Field(..., pattern="^(student|counselor|admin)$")
     remember_me: bool = False
     device_info: str | None = None
 

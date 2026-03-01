@@ -40,7 +40,8 @@ async def signup_and_verify(client, email, password, role="student"):
     
     await verify_user_in_db(email)
     
-    login_resp = await client.post("/api/auth/login", json={"email": email, "password": password})
+    login_payload = {"email": email, "password": password, "role": role}
+    login_resp = await client.post("/api/auth/login", json=login_payload)
     if login_resp.status_code != 200:
         print(f"❌ Login failed for {email}: {login_resp.text}")
         return None

@@ -6,7 +6,7 @@ import { useAuth } from '../hooks/useAuth';
 import VerifyOTP from './VerifyOTP';
 
 interface LoginPageProps {
-    onLoginSuccess: (email: string, password: string, rememberMe: boolean) => Promise<any>;
+    onLoginSuccess: (email: string, password: string, role: Role, rememberMe: boolean) => Promise<any>;
 }
 
 // --- Local Icon Component ---
@@ -33,6 +33,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     const [isVolunteer, setIsVolunteer] = useState(false);
     const [supervisor, setSupervisor] = useState(MOCK_THERAPISTS[0]);
     const [error, setError] = useState<string | null>(null);
+    const [fieldErrors, setFieldErrors] = useState<{ name?: string; email?: string; password?: string }>({});
     const [loading, setLoading] = useState(false);
 
     const resetForm = () => {
@@ -44,6 +45,22 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
         setIsVolunteer(false);
         setSupervisor(MOCK_THERAPISTS[0]);
         setError(null);
+        setFieldErrors({});
+    };
+
+    const validateForm = (): boolean => {
+        const errors: { name?: string; email?: string; password?: string } = {};
+        if (formType === 'signup' && !name.trim()) {
+            errors.name = 'This field is required.';
+        }
+        if (!email.trim()) {
+            errors.email = 'This field is required.';
+        }
+        if (!password.trim()) {
+            errors.password = 'This field is required.';
+        }
+        setFieldErrors(errors);
+        return Object.keys(errors).length === 0;
     };
 
     useEffect(() => {
@@ -56,12 +73,15 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
         e.preventDefault();
         if (!role) return;
 
+        // Client-side validation — stay on page and show errors if fields empty
+        if (!validateForm()) return;
+
         setLoading(true);
         setError(null);
 
         try {
             if (formType === 'login') {
-                await onLoginSuccess(email, password, rememberMe);
+                await onLoginSuccess(email, password, role, rememberMe);
             } else {
                 await signup({
                     email,
@@ -81,12 +101,42 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
 
     const renderFormFields = () => {
         return (
-            <form onSubmit={handleAuth} className="space-y-4">
+            <form onSubmit={handleAuth} className="space-y-4" noValidate>
                 {formType === 'signup' && (
-                    <InputField label={role === 'institution' ? "Principal's Name" : "Full Name"} type="text" value={name} onChange={e => setName(e.target.value)} />
+                    <div>
+                        <InputField
+                            label={role === 'institution' ? "Principal's Name" : "Full Name"}
+                            type="text"
+                            value={name}
+                            onChange={e => { setName(e.target.value); setFieldErrors(fe => ({ ...fe, name: undefined })); }}
+                            aria-describedby={fieldErrors.name ? "name-error" : undefined}
+                            aria-invalid={!!fieldErrors.name}
+                        />
+                        {fieldErrors.name && <p id="name-error" className="text-red-500 text-xs mt-1 pl-2" role="alert">{fieldErrors.name}</p>}
+                    </div>
                 )}
-                <InputField label={role === 'institution' ? "Official Email" : "Email"} type="email" value={email} onChange={e => setEmail(e.target.value)} />
-                <InputField label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} />
+                <div>
+                    <InputField
+                        label={role === 'institution' ? "Official Email" : "Email"}
+                        type="email"
+                        value={email}
+                        onChange={e => { setEmail(e.target.value); setFieldErrors(fe => ({ ...fe, email: undefined })); }}
+                        aria-describedby={fieldErrors.email ? "email-error" : undefined}
+                        aria-invalid={!!fieldErrors.email}
+                    />
+                    {fieldErrors.email && <p id="email-error" className="text-red-500 text-xs mt-1 pl-2" role="alert">{fieldErrors.email}</p>}
+                </div>
+                <div>
+                    <InputField
+                        label="Password"
+                        type="password"
+                        value={password}
+                        onChange={e => { setPassword(e.target.value); setFieldErrors(fe => ({ ...fe, password: undefined })); }}
+                        aria-describedby={fieldErrors.password ? "password-error" : undefined}
+                        aria-invalid={!!fieldErrors.password}
+                    />
+                    {fieldErrors.password && <p id="password-error" className="text-red-500 text-xs mt-1 pl-2" role="alert">{fieldErrors.password}</p>}
+                </div>
 
                 {error && <p className="text-red-500 text-sm">{error}</p>}
 

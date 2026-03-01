@@ -14,7 +14,7 @@ from app.authentication_onboarding.core.security import (
     decode_token,
     hash_token,
 )
-from app.authentication_onboarding.models.user import User
+from app.authentication_onboarding.models.user import AnyUser, get_model_for_role
 from app.authentication_onboarding.schemas.auth import (
     LoginRequest,
     MessageResponse,
@@ -77,6 +77,7 @@ async def login(data: LoginRequest, request: Request):
     return await auth_service.login(
         email=data.email,
         password=data.password,
+        role=data.role,
         remember_me=data.remember_me,
         device_info=data.device_info,
         ip_address=ip,
@@ -117,7 +118,20 @@ async def refresh(data: RefreshRequest):
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Token mismatch."
         )
 
-    user = await User.get(PydanticObjectId(user_id))
+    role = payload.get("role")
+    if not role:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token payload: role missing."
+        )
+
+    try:
+        UserModel = get_model_for_role(role)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid role in token."
+        )
+
+    user = await UserModel.get(PydanticObjectId(user_id))
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found."
@@ -139,7 +153,7 @@ async def refresh(data: RefreshRequest):
 )
 async def logout(
     data: RefreshRequest,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[AnyUser, Depends(get_current_user)],
 ):
     """Revoke the refresh token for the current session."""
     try:

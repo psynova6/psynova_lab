@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from typing import List, Optional
 from bson import ObjectId
-from app.authentication_onboarding.models.user import User, Role
+from app.authentication_onboarding.models.user import AnyUser, Role, get_model_for_role
 from app.authentication_onboarding.core.dependencies import get_current_user
 from app import database
 from app.config import settings
@@ -30,7 +30,7 @@ def get_db():
 @router.post("/", response_model=ConversationRead, status_code=201)
 async def create_conversation(
     data: ConversationCreate,
-    current_user: User = Depends(get_current_user)
+    current_user: AnyUser = Depends(get_current_user)
 ):
     db = get_db()
     
@@ -57,21 +57,27 @@ async def create_conversation(
     
     participant_objs = [ObjectId(pid) for pid in participants]
     
-    # 3. Verify users exist and roles match
-    users_cursor = db.users.find({"_id": {"$in": participant_objs}})
-    found_users = await users_cursor.to_list(length=len(participant_objs))
+    # 3. Verify users exist across collections
+    found_users = []
+    from app.authentication_onboarding.models.student import Student
+    from app.authentication_onboarding.models.therapist import Therapist
+    from app.authentication_onboarding.models.institution_admin import InstitutionAdmin
+
+    for model in [Student, Therapist, InstitutionAdmin]:
+        batch = await model.find({"_id": {"$in": participant_objs}}).to_list()
+        found_users.extend(batch)
     
     if len(found_users) != len(participant_objs):
         raise HTTPException(status_code=404, detail="One or more participants not found.")
 
     # 4. Institution Check: For student-counselor, counselor must be at same institution
     if data.type == ConversationType.STUDENT_COUNSELOR:
-        counselors = [u for u in found_users if u["role"] == Role.COUNSELOR]
+        counselors = [u for u in found_users if u.role == Role.COUNSELOR]
         if not counselors:
             raise HTTPException(status_code=400, detail="No counselor specified for counselor-type conversation.")
         
         for counselor in counselors:
-            if str(counselor.get("institution_id")) != str(current_user.institution_id):
+            if str(counselor.institution_id) != str(current_user.institution_id):
                 raise HTTPException(
                     status_code=403, 
                     detail="Counselor must belong to the same institution as the student."
@@ -119,7 +125,7 @@ async def create_conversation(
 
 @router.get("/", response_model=List[ConversationRead])
 async def list_conversations(
-    current_user: User = Depends(get_current_user)
+    current_user: AnyUser = Depends(get_current_user)
 ):
     db = get_db()
     cursor = db.conversations.find(
@@ -144,7 +150,7 @@ async def get_messages(
     limit: int = Query(50, ge=1, le=100),
     before: Optional[datetime] = None,
     after: Optional[datetime] = None,
-    current_user: User = Depends(get_current_user)
+    current_user: AnyUser = Depends(get_current_user)
 ):
     """Retrieve message history with optional date range filtering."""
     db = get_db()
@@ -195,7 +201,7 @@ async def get_messages(
 @router.get("/{id}/stream")
 async def stream_messages(
     id: str,
-    current_user: User = Depends(get_current_user)
+    current_user: AnyUser = Depends(get_current_user)
 ):
     """
     Subscribe to real-time message updates via Server-Sent Events (SSE).
@@ -229,7 +235,7 @@ async def stream_messages(
 async def send_message(
     id: str,
     data: MessageCreate,
-    current_user: User = Depends(get_current_user)
+    current_user: AnyUser = Depends(get_current_user)
 ):
     db = get_db()
     if not ObjectId.is_valid(id):
@@ -289,7 +295,7 @@ async def edit_message(
     id: str,
     message_id: str,
     data: MessageUpdate,
-    current_user: User = Depends(get_current_user)
+    current_user: AnyUser = Depends(get_current_user)
 ):
     """Edit an existing message. Only the sender can edit their messages."""
     db = get_db()
@@ -336,7 +342,7 @@ async def edit_message(
 async def delete_message(
     id: str,
     message_id: str,
-    current_user: User = Depends(get_current_user)
+    current_user: AnyUser = Depends(get_current_user)
 ):
     """Soft-delete a message. Only the sender or an admin can delete."""
     db = get_db()
@@ -366,7 +372,7 @@ async def delete_message(
 @router.post("/{id}/read", response_model=MessageResponse)
 async def mark_as_read(
     id: str,
-    current_user: User = Depends(get_current_user)
+    current_user: AnyUser = Depends(get_current_user)
 ):
     """Mark all messages in a conversation as read by the current user."""
     db = get_db()
@@ -394,7 +400,7 @@ async def mark_as_read(
 @router.post("/{id}/close", response_model=MessageResponse)
 async def close_conversation(
     id: str,
-    current_user: User = Depends(get_current_user)
+    current_user: AnyUser = Depends(get_current_user)
 ):
     """Close the conversation, preventing further messages."""
     db = get_db()

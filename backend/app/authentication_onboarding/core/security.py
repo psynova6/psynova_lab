@@ -43,6 +43,7 @@ def create_access_token(
 
 def create_refresh_token(
     sub: str,
+    role: str,
     session_id: str,
     remember_me: bool = False,
 ) -> str:
@@ -51,6 +52,7 @@ def create_refresh_token(
     expire = datetime.now(timezone.utc) + timedelta(days=days)
     payload = {
         "sub": sub,
+        "role": role,
         "sid": session_id,
         "type": "refresh",
         "exp": expire,

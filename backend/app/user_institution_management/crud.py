@@ -6,7 +6,7 @@ from typing import List, Optional
 from beanie import PydanticObjectId, UpdateResponse
 from bson.errors import InvalidId
 from .models import Institution, InstitutionUser
-from app.authentication_onboarding.models.user import User, Role
+from app.authentication_onboarding.models.user import AnyUser, Role, get_user_by_id
 from .schemas import InstitutionCreate, InstitutionUpdate, UserProfileUpdate
 from datetime import datetime, timezone
 
@@ -51,13 +51,13 @@ class UserInstitutionService:
 
     # --- User Profile Management ---
     @staticmethod
-    async def update_user_profile(user_id: str, data: UserProfileUpdate) -> Optional[User]:
+    async def update_user_profile(user_id: str, data: UserProfileUpdate) -> Optional[AnyUser]:
         oid = validate_id(user_id, "User ID")
-        user = await User.get(oid)
+        user = await get_user_by_id(oid)
         if user:
             update_data = data.model_dump(exclude_unset=True)
             await user.update({"$set": update_data})
-            return await User.get(oid)
+            return await get_user_by_id(oid)
         return None
 
     # --- Relationships & Roles ---
@@ -66,7 +66,7 @@ class UserInstitutionService:
         u_oid = validate_id(user_id, "User ID")
         i_oid = validate_id(institution_id, "Institution ID")
         
-        user = await User.get(u_oid)
+        user = await get_user_by_id(u_oid)
         if not user:
             raise ValueError(f"User with ID {user_id} not found")
             

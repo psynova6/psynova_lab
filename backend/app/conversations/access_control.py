@@ -1,9 +1,9 @@
 from fastapi import HTTPException, status
-from app.authentication_onboarding.models.user import User, Role
+from app.authentication_onboarding.models.user import AnyUser, Role
 from .models.conversation import Conversation
 from bson import ObjectId
 
-async def verify_conversation_access(user: User, conversation_data: dict):
+async def verify_conversation_access(user: AnyUser, conversation_data: dict):
     """
     Verifies if a user has access to a conversation.
     conversation_data is the raw dictionary from MongoDB.
