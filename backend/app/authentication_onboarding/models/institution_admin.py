@@ -22,8 +22,9 @@ class InstitutionAdmin(BaseUserMixin, Document):
     designation: Optional[str] = None      # e.g., "Principal", "Dean of Students"
 
     @property
-    def role(self) -> str:
-        return "admin"
+    def role(self) -> Role:
+        from .user import Role
+        return Role.ADMIN
 
     class Settings:
         name = "institution_admins"

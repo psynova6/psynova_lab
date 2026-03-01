@@ -36,5 +36,13 @@ export const synaAiService = {
     async recordMood(mood: number): Promise<any> {
         const response = await synaClient.post('/mood', { mood });
         return response.data;
+    },
+
+    /**
+     * Fetches the isolated chat history for the logged-in user.
+     */
+    async getChatHistory(): Promise<any> {
+        const response = await synaClient.get('/history');
+        return response.data;
     }
 };

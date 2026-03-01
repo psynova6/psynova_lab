@@ -12,16 +12,16 @@ from app.config import settings
 
 # ── Password hashing ──
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__rounds=12)
+pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
 
 def hash_password(plain: str) -> str:
-    """Hash a plaintext password using bcrypt with 12 rounds."""
+    """Hash a plaintext password using Argon2id."""
     return pwd_context.hash(plain)
 
 
 def verify_password(plain: str, hashed: str) -> bool:
-    """Constant-time bcrypt verification."""
+    """Argon2id password verification."""
     return pwd_context.verify(plain, hashed)
 
 

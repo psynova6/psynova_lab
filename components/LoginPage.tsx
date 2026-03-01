@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { UserIcon, TherapistIcon } from './common/icons';
+import { UserIcon, TherapistIcon, EyeIcon, EyeOffIcon } from './common/icons';
 import Logo from './layout/Logo';
 import type { Role } from '../types';
 import { useAuth } from '../hooks/useAuth';
@@ -20,6 +20,9 @@ const InstitutionIcon = ({ className }: { className?: string }) => (
 const MOCK_INSTITUTIONS = ['University of Wellness', 'Mindful Learning College', 'Serenity Institute of Technology'];
 const MOCK_THERAPISTS = ['Dr. Ananya Sharma', 'Rohan Verma', 'Priya Desai', 'Dr. Meera Krishnan'];
 
+const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
 const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     const { signup, verify, resendOTP, role, setRole } = useAuth();
     const [formType, setFormType] = useState<'login' | 'signup' | 'verify'>('login');
@@ -35,6 +38,9 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     const [error, setError] = useState<string | null>(null);
     const [fieldErrors, setFieldErrors] = useState<{ name?: string; email?: string; password?: string }>({});
     const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [isFormValid, setIsFormValid] = useState(false);
+    const [touched, setTouched] = useState<{ name?: boolean; email?: boolean; password?: boolean }>({});
 
     const resetForm = () => {
         setName('');
@@ -46,22 +52,45 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
         setSupervisor(MOCK_THERAPISTS[0]);
         setError(null);
         setFieldErrors({});
+        setTouched({});
+        setIsFormValid(false);
     };
 
-    const validateForm = (): boolean => {
+    const validateForm = (currentValues?: { name: string; email: string; password: string }): boolean => {
+        const vName = currentValues ? currentValues.name : name;
+        const vEmail = currentValues ? currentValues.email : email;
+        const vPassword = currentValues ? currentValues.password : password;
+
         const errors: { name?: string; email?: string; password?: string } = {};
-        if (formType === 'signup' && !name.trim()) {
-            errors.name = 'This field is required.';
+
+        if (formType === 'signup' && !vName.trim()) {
+            errors.name = 'Full name is required.';
         }
-        if (!email.trim()) {
-            errors.email = 'This field is required.';
+
+        if (!vEmail.trim()) {
+            errors.email = 'Email is required.';
+        } else if (!EMAIL_REGEX.test(vEmail)) {
+            errors.email = 'Invalid email format (e.g. test@gmail.com).';
         }
-        if (!password.trim()) {
-            errors.password = 'This field is required.';
+
+        if (!vPassword.trim()) {
+            errors.password = 'Password is required.';
+        } else if (formType === 'signup' && !PASSWORD_REGEX.test(vPassword)) {
+            errors.password = 'Weak password: Must be 8+ chars with uppercase, lowercase, digit, and special char (@$!%*?&).';
+        } else if (formType === 'login' && !PASSWORD_REGEX.test(vPassword)) {
+            errors.password = 'Invalid password format.';
         }
+
         setFieldErrors(errors);
-        return Object.keys(errors).length === 0;
+        const valid = Object.keys(errors).length === 0;
+        setIsFormValid(valid);
+        return valid;
     };
+
+    // Real-time validation
+    useEffect(() => {
+        validateForm();
+    }, [name, email, password, formType, role]);
 
     useEffect(() => {
         if (formType !== 'verify') {
@@ -108,11 +137,12 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                             label={role === 'institution' ? "Principal's Name" : "Full Name"}
                             type="text"
                             value={name}
-                            onChange={e => { setName(e.target.value); setFieldErrors(fe => ({ ...fe, name: undefined })); }}
+                            onChange={e => { setName(e.target.value); setTouched(t => ({ ...t, name: true })); }}
+                            onBlur={() => setTouched(t => ({ ...t, name: true }))}
                             aria-describedby={fieldErrors.name ? "name-error" : undefined}
                             aria-invalid={!!fieldErrors.name}
                         />
-                        {fieldErrors.name && <p id="name-error" className="text-red-500 text-xs mt-1 pl-2" role="alert">{fieldErrors.name}</p>}
+                        {touched.name && fieldErrors.name && <p id="name-error" className="text-red-500 text-xs mt-1 pl-2" role="alert">{fieldErrors.name}</p>}
                     </div>
                 )}
                 <div>
@@ -120,22 +150,27 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                         label={role === 'institution' ? "Official Email" : "Email"}
                         type="email"
                         value={email}
-                        onChange={e => { setEmail(e.target.value); setFieldErrors(fe => ({ ...fe, email: undefined })); }}
+                        onChange={e => { setEmail(e.target.value); setTouched(t => ({ ...t, email: true })); }}
+                        onBlur={() => setTouched(t => ({ ...t, email: true }))}
                         aria-describedby={fieldErrors.email ? "email-error" : undefined}
                         aria-invalid={!!fieldErrors.email}
                     />
-                    {fieldErrors.email && <p id="email-error" className="text-red-500 text-xs mt-1 pl-2" role="alert">{fieldErrors.email}</p>}
+                    {touched.email && fieldErrors.email && <p id="email-error" className="text-red-500 text-xs mt-1 pl-2" role="alert">{fieldErrors.email}</p>}
                 </div>
                 <div>
                     <InputField
                         label="Password"
-                        type="password"
+                        type={showPassword ? "text" : "password"}
                         value={password}
-                        onChange={e => { setPassword(e.target.value); setFieldErrors(fe => ({ ...fe, password: undefined })); }}
+                        onChange={e => { setPassword(e.target.value); setTouched(t => ({ ...t, password: true })); }}
+                        onBlur={() => setTouched(t => ({ ...t, password: true }))}
                         aria-describedby={fieldErrors.password ? "password-error" : undefined}
                         aria-invalid={!!fieldErrors.password}
+                        onTogglePassword={() => setShowPassword(!showPassword)}
+                        isPasswordVisible={showPassword}
+                        isPasswordField
                     />
-                    {fieldErrors.password && <p id="password-error" className="text-red-500 text-xs mt-1 pl-2" role="alert">{fieldErrors.password}</p>}
+                    {touched.password && fieldErrors.password && <p id="password-error" className="text-red-500 text-xs mt-1 pl-2" role="alert">{fieldErrors.password}</p>}
                 </div>
 
                 {error && <p className="text-red-500 text-sm">{error}</p>}
@@ -167,7 +202,11 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                     </>
                 )}
 
-                <button type="submit" disabled={loading} className="w-full bg-brand-dark-green text-white font-semibold py-3 px-6 rounded-full hover:bg-brand-light-green hover:text-brand-dark-green transition-colors duration-300 disabled:opacity-50">
+                <button
+                    type="submit"
+                    disabled={loading || !isFormValid}
+                    className="w-full bg-brand-dark-green text-white font-semibold py-3 px-6 rounded-full hover:bg-brand-light-green hover:text-brand-dark-green transition-colors duration-300 disabled:opacity-30 disabled:cursor-not-allowed"
+                >
                     {loading ? (formType === 'login' ? 'Logging in...' : 'Signing up...') : (formType === 'login' ? 'Login' : 'Sign Up')}
                 </button>
             </form>
@@ -236,10 +275,30 @@ const RoleCard = ({ icon, title, onClick }: { icon: React.ReactNode, title: stri
     </button>
 );
 
-const InputField: React.FC<React.InputHTMLAttributes<HTMLInputElement> & { label: string }> = ({ label, ...props }) => (
+const InputField: React.FC<React.InputHTMLAttributes<HTMLInputElement> & {
+    label: string,
+    isPasswordField?: boolean,
+    onTogglePassword?: () => void,
+    isPasswordVisible?: boolean
+}> = ({ label, isPasswordField, onTogglePassword, isPasswordVisible, ...props }) => (
     <div>
         <label htmlFor={props.id || props.name} className="block text-sm font-medium text-brand-dark-green/80 mb-1">{label}</label>
-        <input {...props} className="w-full px-4 py-2 border border-brand-light-green/50 rounded-full focus:ring-brand-dark-green focus:border-brand-dark-green bg-white/50" />
+        <div className="relative">
+            <input
+                {...props}
+                className="w-full px-4 py-2 border border-brand-light-green/50 rounded-full focus:ring-brand-dark-green focus:border-brand-dark-green bg-white/50 pr-12"
+            />
+            {isPasswordField && onTogglePassword && (
+                <button
+                    type="button"
+                    onClick={onTogglePassword}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-brand-dark-green/60 hover:text-brand-dark-green transition-colors"
+                    aria-label={isPasswordVisible ? "Hide password" : "Show password"}
+                >
+                    {isPasswordVisible ? <EyeOffIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
+                </button>
+            )}
+        </div>
     </div>
 );
 

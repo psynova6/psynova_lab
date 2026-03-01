@@ -23,8 +23,9 @@ class Student(BaseUserMixin, Document):
     year_of_study: Optional[int] = None    # e.g., 1, 2, 3, 4
 
     @property
-    def role(self) -> str:
-        return "student"
+    def role(self) -> Role:
+        from .user import Role
+        return Role.STUDENT
 
     class Settings:
         name = "students"

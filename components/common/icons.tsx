@@ -1,13 +1,13 @@
 import React from 'react';
 
 export const ChatIcon = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} stroke="currentColor">
-    <path d="M16 9V8C16 5.23858 13.7614 3 11 3C8.23858 3 6 5.23858 6 8V9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    <path d="M12 13V12" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    <path d="M4 14H6V18H4V14Z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    <path d="M18 14H20V18H18V14Z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    <path d="M6 21H18C19.1046 21 20 20.1046 20 19V12C20 10.8954 19.1046 10 18 10H6C4.89543 10 4 10.8954 4 12V19C4 20.1046 4.89543 21 6 21Z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} stroke="currentColor">
+        <path d="M16 9V8C16 5.23858 13.7614 3 11 3C8.23858 3 6 5.23858 6 8V9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M12 13V12" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M4 14H6V18H4V14Z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M18 14H20V18H18V14Z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M6 21H18C19.1046 21 20 20.1046 20 19V12C20 10.8954 19.1046 10 18 10H6C4.89543 10 4 10.8954 4 12V19C4 20.1046 4.89543 21 6 21Z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
 );
 
 export const UserIcon = ({ className }: { className?: string }) => (
@@ -160,6 +160,19 @@ export const ShieldCheckIcon = ({ className }: { className?: string }) => (
 export const HeartIcon = ({ className }: { className?: string }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.5l1.318-1.182a4.5 4.5 0 116.364 6.364L12 20.25l-7.318-6.568a4.5 4.5 0 010-6.364z" />
+    </svg>
+);
+
+export const EyeIcon = ({ className }: { className?: string }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+    </svg>
+);
+
+export const EyeOffIcon = ({ className }: { className?: string }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M13.878 15.526L16.12 18.17M9.621 16.039L4.5 21M10.733 5.076a10.745 10.745 0 011.267-.201c4.478 0 8.268 2.943 9.542 7a10.05 10.05 0 01-.663 2.183M12 12V6m0 12v-6m0 0l-3-3m3 3l3 3" />
     </svg>
 );
 

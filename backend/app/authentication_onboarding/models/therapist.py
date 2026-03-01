@@ -24,8 +24,9 @@ class Therapist(BaseUserMixin, Document):
     supervisor_id: Optional[str] = None    # Therapist._id of the supervising counselor
 
     @property
-    def role(self) -> str:
-        return "counselor"
+    def role(self) -> Role:
+        from .user import Role
+        return Role.COUNSELOR
 
     class Settings:
         name = "therapists"

@@ -78,11 +78,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const logout = useCallback(async () => {
         const refreshToken = localStorage.getItem('refreshToken');
 
-        // --- UX First: Clear local state immediately ---
-        localStorage.removeItem('isAuthenticated');
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        sessionStorage.removeItem('isAuthenticated');
+        // --- UX First: Clear ALL local state immediately to prevent data leakage ---
+        localStorage.clear();
+        sessionStorage.clear();
 
         setIsAuthenticated(false);
         setRole(null);

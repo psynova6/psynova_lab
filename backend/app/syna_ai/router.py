@@ -46,6 +46,16 @@ router = APIRouter(prefix="/syna", tags=["Syna AI Chatbot"])
 class ChatRequest(BaseModel):
     message: str
 
+class ChatMessageOut(BaseModel):
+    id: int
+    role: str
+    message: str
+    risk_level: str
+    created_at: str
+
+class ChatHistoryOut(BaseModel):
+    history: List[ChatMessageOut]
+
 def detect_crisis(text: str) -> bool:
     crisis_phrases = ["i want to die", "i feel like dying", "i want to kill myself", "end my life", "don't want to live", "suicide"]
     return any(phrase in text.lower() for phrase in crisis_phrases)
@@ -94,7 +104,7 @@ async def chat(
     # 1. Check for immediate crisis keywords
     if detect_crisis(text_normalized) or detect_crisis(original_normalized):
         await run_db_op(crisis_check_and_save)
-        utils["send_crisis_alerts"](user_input, risk_source="keyword_match")
+        utils["send_crisis_alerts"](user_id, user_role, user_input, risk_source="keyword_match")
         return {
             "risk_level": "high", "crisis": True, "trigger_appointment_popup": True,
             "reply": "I hear you, and I'm really glad you shared this with me. Take a slow, deep breath with me - you're safe right now."
@@ -165,20 +175,139 @@ async def chat(
     await run_db_op(save_final)
 
     if final_risk == 2:
-        utils["send_crisis_alerts"](user_input, risk_source="pipeline")
+        utils["send_crisis_alerts"](user_id, user_role, user_input, risk_source="pipeline")
         return {
             "risk_level": "high", "crisis": True, "trigger_appointment_popup": True,
             "reply": "I can sense you're going through something really tough... Let's take a moment together. Breathe in slowly... and out."
         }
 
     reply = utils["get_gemini_response"](user_input, final_risk, language=lang_code)
+    
+    # Save bot reply to history for isolation
+    def save_bot_reply(conn, cursor):
+        cursor.execute(
+            "INSERT INTO chats (user_id, role, message, risk_level) VALUES (?, ?, ?, ?)",
+            (user_id, "bot", reply, risk_label)
+        )
+        conn.commit()
+    
+    await run_db_op(save_bot_reply)
+
     return {"risk_level": risk_label, "reply": reply}
 
+
+@router.get("/history", response_model=ChatHistoryOut)
+async def get_chat_history(
+    current_user: AnyUser = Depends(get_current_user)
+):
+    """
+    Fetch the isolated chat history for the logged-in user.
+    """
+    user_id = str(current_user.id)
+
+    def fetch_history(conn, cursor):
+        cursor.execute(
+            "SELECT id, role, message, risk_level, created_at FROM chats WHERE user_id = ? ORDER BY created_at ASC",
+            (user_id,)
+        )
+        rows = cursor.fetchall()
+        return [
+            ChatMessageOut(
+                id=r[0],
+                role=r[1],
+                message=r[2],
+                risk_level=r[3],
+                created_at=str(r[4])
+            ) for r in rows
+        ]
+
+    history = await run_db_op(fetch_history)
+    return ChatHistoryOut(history=history)
+
+# ---------------------------------------------------------
+# COPING MECHANISMS: MOOD & JOURNALS
+# ---------------------------------------------------------
+
+class MoodRequest(BaseModel):
+    mood: int
+
+class JournalRequest(BaseModel):
+    content: str
+
+@router.post("/mood")
+async def post_mood(
+    request: MoodRequest,
+    current_user: AnyUser = Depends(get_current_user)
+):
+    """Save a user's isolated mood check-in."""
+    user_id = str(current_user.id)
+    utils = get_models_and_utils()
+    
+    # Run synchronously in threadpool to avoid DB blocking
+    def _save():
+        utils["save_mood"](user_id, request.mood)
+    
+    await asyncio.to_thread(_save)
+    return {"status": "success", "user_id": user_id}
+
+@router.get("/mood/history")
+async def get_mood_history(
+    current_user: AnyUser = Depends(get_current_user)
+):
+    """Fetch recent mood check-ins for the isolated user."""
+    from app.syna_ai.models.mood_logic import get_recent_moods
+    user_id = str(current_user.id)
+    
+    rows = await asyncio.to_thread(get_recent_moods, user_id)
+    return {"history": [{"mood_score": r[0], "date": r[1]} for r in rows]}
+
+@router.post("/journal")
+async def post_journal(
+    request: JournalRequest,
+    current_user: AnyUser = Depends(get_current_user)
+):
+    """Save an isolated journal entry."""
+    user_id = str(current_user.id)
+    
+    def _save(conn, cursor):
+        cursor.execute(
+            "INSERT INTO journals (user_id, content) VALUES (?, ?)",
+            (user_id, request.content)
+        )
+        conn.commit()
+    
+    # Reuse existing run_db_op if possible, but let's just use get_db_context for simplicity
+    with get_db_context() as (conn, cursor):
+         _save(conn, cursor)
+         
+    return {"status": "success"}
+
+@router.get("/journal/history")
+async def get_journal_history(
+    current_user: AnyUser = Depends(get_current_user)
+):
+    """Fetch isolated journal history."""
+    user_id = str(current_user.id)
+
+    def _fetch(conn, cursor):
+        cursor.execute("SELECT content, created_at FROM journals WHERE user_id = ? ORDER BY created_at DESC", (user_id,))
+        return cursor.fetchall()
+
+    with get_db_context() as (conn, cursor):
+        rows = _fetch(conn, cursor)
+
+    return {"history": [{"content": r[0], "date": r[1]} for r in rows]}
+
+
 @router.get("/analytics/risks")
-async def get_analytics_risks():
+async def get_analytics_risks(
+    current_user: AnyUser = Depends(get_current_user)
+):
+    """Isolated risk analytics for the logged-in user."""
+    user_id = str(current_user.id)
     def _fetch_risk_counts():
         with get_db_context() as (conn, cursor):
-            cursor.execute("SELECT risk_level, COUNT(*) FROM chats GROUP BY risk_level")
+            cursor.execute("SELECT risk_level, COUNT(*) FROM chats WHERE user_id = ? GROUP BY risk_level", (user_id,))
             return dict(cursor.fetchall())
     
     return await asyncio.to_thread(_fetch_risk_counts)

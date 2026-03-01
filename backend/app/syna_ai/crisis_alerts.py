@@ -7,15 +7,15 @@ from app.syna_ai.database import get_db
 from datetime import datetime
 
 
-def send_crisis_alerts(user_message: str, risk_source: str) -> int:
+def send_crisis_alerts(user_id: str, role: str, user_message: str, risk_source: str) -> int:
     """
     Log a crisis event and dispatch alerts to all relevant parties.
     """
     conn, cursor = get_db()
-    # 1. Log crisis event to database
+    # 1. Log crisis event to database with user isolation
     cursor.execute(
-        "INSERT INTO crisis_alerts (message, risk_source) VALUES (?, ?)",
-        (user_message, risk_source)
+        "INSERT INTO crisis_alerts (user_id, role, message, risk_source) VALUES (?, ?, ?, ?)",
+        (user_id, role, user_message, risk_source)
     )
     conn.commit()
     alert_id = cursor.lastrowid

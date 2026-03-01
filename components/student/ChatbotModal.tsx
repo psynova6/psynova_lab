@@ -26,14 +26,35 @@ const ChatbotModal: React.FC<ChatbotModalProps> = ({ isOpen, onClose, chatHistor
   }, [chatHistory]);
 
   useEffect(() => {
-    if (isOpen && chatHistory.length === 0) {
-      onNewMessage([
-        {
-          role: 'model',
-          text: "Hello! I'm Syna, your personal support assistant. How are you feeling today?",
-        },
-      ]);
-    }
+    const fetchHistory = async () => {
+      if (isOpen && chatHistory.length === 0) {
+        setIsLoading(true);
+        try {
+          const data = await synaAiService.getChatHistory();
+          if (data.history && data.history.length > 0) {
+            const formattedHistory: Message[] = data.history.map((item: any) => ({
+              role: item.role === 'bot' ? 'model' : 'user',
+              text: item.message
+            }));
+            onNewMessage(formattedHistory);
+          } else {
+            // Initial greeting if history is truly empty
+            onNewMessage([
+              {
+                role: 'model',
+                text: "Hello! I'm Syna, your personal support assistant. How are you feeling today?",
+              },
+            ]);
+          }
+        } catch (error) {
+          console.error("Failed to fetch chat history:", error);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchHistory();
   }, [isOpen, chatHistory.length, onNewMessage]);
 
   const handleSendMessage = async () => {
