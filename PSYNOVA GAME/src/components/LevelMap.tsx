@@ -5,12 +5,13 @@ import type { UserProgress } from '../types';
 
 interface Props {
     progress: UserProgress;
+    onShowRules?: () => void;
 }
 
 const LEVEL_GAP = 100;
 const PATH_AMPLITUDE = 60; // How wide the path winds
 
-export default function LevelMap({ progress }: Props) {
+export default function LevelMap({ progress, onShowRules }: Props) {
     const navigate = useNavigate();
     const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -80,6 +81,16 @@ export default function LevelMap({ progress }: Props) {
             {/* Bottom Gradient for scrolling fade */}
             <div className="fixed bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-brand-bg to-transparent pointer-events-none z-20" />
             <div className="fixed top-0 left-0 right-0 h-12 bg-gradient-to-b from-brand-bg to-transparent pointer-events-none z-20" />
+
+            {/* Fixed Rules Button */}
+            {onShowRules && (
+                <button
+                    onClick={onShowRules}
+                    className="fixed top-4 right-4 z-30 py-2 px-4 rounded-brand bg-brand-card/80 backdrop-blur-sm border border-brand-border text-xs text-brand-muted hover:text-white hover:border-brand-accent/40 transition-colors"
+                >
+                    📖 Rules
+                </button>
+            )}
         </div>
     );
 }

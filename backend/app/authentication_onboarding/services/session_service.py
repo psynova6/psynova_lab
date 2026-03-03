@@ -24,7 +24,7 @@ async def create_session(
     # first, then update with the hash.
     session = AuthSession(
         user_id=user_id,
-        refresh_token_hash="",  # placeholder
+        refresh_token_hash="PENDING", 
         device_info=device_info,
         ip_address=ip_address,
         remember_me=remember_me,
@@ -35,6 +35,9 @@ async def create_session(
     raw_refresh = create_refresh_token(
         sub=user_id, role=role, session_id=str(session.id), remember_me=remember_me
     )
+    
+    # Update hash in background? No, needs to be safe. 
+    # But we can minimize the time between insert and return.
     session.refresh_token_hash = hash_token(raw_refresh)
     await session.save()
 

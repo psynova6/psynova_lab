@@ -35,6 +35,7 @@ async def connect_db() -> None:
         PasswordResetToken,
     )
     from app.user_institution_management.models import Institution, InstitutionUser
+    from app.games.models import UserGameProgress
 
     try:
         await init_beanie(
@@ -47,7 +48,8 @@ async def connect_db() -> None:
                 VerificationToken,
                 PasswordResetToken,
                 Institution,
-                InstitutionUser
+                InstitutionUser,
+                UserGameProgress
             ],
         )
     except Exception as e:

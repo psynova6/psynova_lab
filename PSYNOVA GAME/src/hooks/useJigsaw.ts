@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import type { PuzzlePiece } from '../types';
 import { playSnap } from '../data/audio';
+import { generateEdgeMap, PIECE_SCALE, type EdgeMap } from '../utils/jigsawClipPath';
 
 /* ─── Constants ─── */
 // GRID is now dynamic
@@ -22,6 +23,8 @@ export interface UseJigsawReturn {
     completed: boolean;
     elapsedSeconds: number;
     cellSize: number;
+    paddedCellSize: number;
+    edgeMap: EdgeMap | null;
     handleDragStart: (id: number) => void;
     handleDragMove: (id: number, x: number, y: number) => void;
     handleDragEnd: (id: number) => void;
@@ -40,10 +43,12 @@ export function useJigsaw({
     const [pieces, setPieces] = useState<PuzzlePiece[]>([]);
     const [loading, setLoading] = useState(true);
     const [elapsedSeconds, setElapsedSeconds] = useState(0);
+    const [edgeMap, setEdgeMap] = useState<EdgeMap | null>(null);
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const hasInteracted = useRef(false);
     const zCounter = useRef(TOTAL + 1);
     const cellSize = boardSize / gridSize;
+    const paddedCellSize = cellSize * PIECE_SCALE;
 
     /* ─── Slice image into tiles ─── */
     const sliceImage = useCallback(
@@ -55,13 +60,24 @@ export function useJigsaw({
                     const tiles: string[] = [];
                     const sw = img.naturalWidth / gridSize;
                     const sh = img.naturalHeight / gridSize;
+                    // Extra padding for jigsaw tabs
+                    const pad = cellSize * (PIECE_SCALE - 1) / 2;
+                    const padSrc = sw * (PIECE_SCALE - 1) / 2;
+                    const totalPx = Math.ceil(cellSize * PIECE_SCALE);
                     for (let r = 0; r < gridSize; r++) {
                         for (let c = 0; c < gridSize; c++) {
                             const canvas = document.createElement('canvas');
-                            canvas.width = cellSize;
-                            canvas.height = cellSize;
+                            canvas.width = totalPx;
+                            canvas.height = totalPx;
                             const ctx = canvas.getContext('2d')!;
-                            ctx.drawImage(img, c * sw, r * sh, sw, sh, 0, 0, cellSize, cellSize);
+                            // Draw with padding: source region expands by padSrc on each side
+                            ctx.drawImage(
+                                img,
+                                c * sw - padSrc, r * sh - padSrc,
+                                sw + 2 * padSrc, sh + 2 * padSrc,
+                                0, 0,
+                                totalPx, totalPx,
+                            );
                             tiles.push(canvas.toDataURL('image/webp', 0.85));
                         }
                     }
@@ -85,8 +101,8 @@ export function useJigsaw({
                     id: i,
                     correctRow: row,
                     correctCol: col,
-                    x: Math.random() * (trayWidth - cellSize),
-                    y: trayTop + Math.random() * (trayHeight - cellSize - 20),
+                    x: Math.random() * (trayWidth - paddedCellSize),
+                    y: trayTop + Math.random() * (trayHeight - paddedCellSize - 20),
                     rotation: [0, 90, 180, 270][Math.floor(Math.random() * 4)],
                     locked: false,
                     imageData: dataUrl,
@@ -94,7 +110,7 @@ export function useJigsaw({
                 };
             });
         },
-        [boardSize, cellSize, trayWidth, trayHeight, gridSize],
+        [boardSize, paddedCellSize, trayWidth, trayHeight, gridSize],
     );
 
     /* ─── Init / Restart ─── */
@@ -106,6 +122,10 @@ export function useJigsaw({
         if (timerRef.current) clearInterval(timerRef.current);
         timerRef.current = null;
 
+        // Generate deterministic edge map
+        const map = generateEdgeMap(gridSize, 1337 + gridSize);
+        setEdgeMap(map);
+
         try {
             const tiles = await sliceImage(imageSrc);
             setPieces(shufflePieces(tiles));
@@ -113,7 +133,7 @@ export function useJigsaw({
             console.error('Failed to slice image', e);
         }
         setLoading(false);
-    }, [imageSrc, sliceImage, shufflePieces, TOTAL]);
+    }, [imageSrc, sliceImage, shufflePieces, TOTAL, gridSize]);
 
     useEffect(() => {
         init();
@@ -156,8 +176,10 @@ export function useJigsaw({
             setPieces((prev) =>
                 prev.map((p) => {
                     if (p.id !== id || p.locked) return p;
-                    const targetX = p.correctCol * cellSize;
-                    const targetY = p.correctRow * cellSize;
+                    // Snap target accounts for tab padding offset
+                    const pad = (paddedCellSize - cellSize) / 2;
+                    const targetX = p.correctCol * cellSize - pad;
+                    const targetY = p.correctRow * cellSize - pad;
                     const dx = Math.abs(p.x - targetX);
                     const dy = Math.abs(p.y - targetY);
                     if (dx < SNAP_THRESHOLD && dy < SNAP_THRESHOLD && p.rotation === 0) {
@@ -168,7 +190,7 @@ export function useJigsaw({
                 }),
             );
         },
-        [cellSize],
+        [cellSize, paddedCellSize],
     );
 
     /* ─── Rotate ─── */
@@ -202,6 +224,8 @@ export function useJigsaw({
         completed,
         elapsedSeconds,
         cellSize,
+        paddedCellSize,
+        edgeMap,
         handleDragStart,
         handleDragMove,
         handleDragEnd,

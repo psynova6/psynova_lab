@@ -204,17 +204,18 @@ async def login(
     user = await UserModel.find_one(UserModel.email == email)
     found_in_role = role if user else None
 
-    # If not found in requested role, check OTHER roles to provide better feedback (e.g., Role Mismatch)
+    # If not found in requested role, check OTHER roles in PARALLEL to provide better feedback
     if not user:
         other_roles = [r.value for r in Role if r.value != role]
-        for role_val in other_roles:
-            UserModel = get_model_for_role(role_val)
-            candidate = await UserModel.find_one(UserModel.email == email)
+        candidate_queries = [get_model_for_role(rv).find_one(get_model_for_role(rv).email == email) for rv in other_roles]
+        results = await asyncio.gather(*candidate_queries)
+        
+        for i, candidate in enumerate(results):
             if candidate:
                 user = candidate
-                found_in_role = role_val
+                found_in_role = other_roles[i]
                 break
-    log.info(f"TIMING: Login user lookup took {time.time() - t1:.2f}s")
+    log.info(f"TIMING: Login user lookup took {time.time() - t1:.4f}s")
 
     if user is None:
         log.warning(f"Login failed: user not found for {email}")

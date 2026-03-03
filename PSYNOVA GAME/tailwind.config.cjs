@@ -6,9 +6,9 @@ module.exports = {
             /* ─── Brand tokens ─── */
             colors: {
                 brand: {
-                    bg: '#0f121a',
-                    surface: '#1a1e28',
-                    card: '#222736',
+                    bg: '#050609',
+                    surface: '#0d0f14',
+                    card: '#13151c',
                     border: 'rgba(255,255,255,0.06)',
                     accent: '#2dd4bf',          // teal-400
                     accentAlt: '#10b981',          // emerald-500

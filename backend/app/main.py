@@ -100,7 +100,11 @@ app.include_router(management_router)
 from app.syna_ai.router import router as syna_router
 app.include_router(syna_router)
 
-# 4. (Future components go here)
+# 4. Games Progress Tracking
+from app.games.router import router as games_router
+app.include_router(games_router)
+
+# 5. (Future components go here)
 
 
 @app.get("/", tags=["Health"])
