@@ -8,7 +8,8 @@ backend runs as a single `uvicorn app.main:app` process.
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+import time
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import close_db, connect_db
@@ -19,9 +20,31 @@ logging.basicConfig(level=logging.INFO)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Startup: connect to MongoDB.  Shutdown: close the connection."""
+    """Startup: connect to MongoDB and pre-load AI models. Shutdown: close the connection."""
     await connect_db()
     log.info("Connected to MongoDB and initialised Beanie ODM.")
+    
+    # Pre-load Syna AI models to eliminate first-request latency
+    try:
+        from app.syna_ai.router import get_models_and_utils
+        import asyncio
+        import threading
+        
+        def preload():
+            log.info("🧠 Pre-loading Syna AI models...")
+            utils = get_models_and_utils()
+            # Trigger lazy loads
+            utils["predict_risk_ensemble"]("test")
+            utils["predict_risk_xgb"]("test")
+            utils["predict_temporal_risk_lstm"](["test"])
+            utils["detect_semantic_risk"]("test")
+            log.info("✅ Syna AI models pre-loaded.")
+
+        # Run pre-loading in a separate thread to not block server startup
+        threading.Thread(target=preload, daemon=True).start()
+    except Exception as e:
+        log.error(f"Failed to pre-load AI models: {e}")
+
     yield
     await close_db()
     log.info("MongoDB connection closed.")
@@ -38,6 +61,16 @@ app = FastAPI(
     version="0.1.0",
     lifespan=lifespan,
 )
+
+
+# ── Global Request Logger Middleware ──
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start_time = time.time()
+    response = await call_next(request)
+    duration = time.time() - start_time
+    log.info(f"REQ: {request.method} {request.url.path} - {response.status_code} ({duration:.2f}s)")
+    return response
 
 # Removed custom validation error handler to fix serialization issues. Default handler will be used.
 

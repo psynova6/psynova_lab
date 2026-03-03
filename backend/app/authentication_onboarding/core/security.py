@@ -15,14 +15,16 @@ from app.config import settings
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
 
-def hash_password(plain: str) -> str:
-    """Hash a plaintext password using Argon2id."""
-    return pwd_context.hash(plain)
+import asyncio
+
+async def hash_password(plain: str) -> str:
+    """Hash a plaintext password using Argon2id in a threadpool."""
+    return await asyncio.to_thread(pwd_context.hash, plain)
 
 
-def verify_password(plain: str, hashed: str) -> bool:
-    """Argon2id password verification."""
-    return pwd_context.verify(plain, hashed)
+async def verify_password(plain: str, hashed: str) -> bool:
+    """Argon2id password verification in a threadpool."""
+    return await asyncio.to_thread(pwd_context.verify, plain, hashed)
 
 
 # ── JWT tokens ──

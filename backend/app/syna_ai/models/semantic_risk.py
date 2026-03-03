@@ -25,6 +25,7 @@ def get_anchors():
     global _anchor_embeddings
     if _anchor_embeddings is None:
         model = get_model()
+        # Ensure we are on CPU for anchors if model is on CPU
         _anchor_embeddings = model.encode(HIGH_RISK_ANCHORS, convert_to_tensor=True)
     return _anchor_embeddings
 

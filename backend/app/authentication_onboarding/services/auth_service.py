@@ -9,6 +9,8 @@ Routes each operation to the correct role-specific MongoDB collection:
 import logging
 import re
 import secrets
+import time
+import asyncio
 from datetime import datetime, timedelta, timezone
 
 from fastapi import HTTPException, status
@@ -101,15 +103,14 @@ async def signup(data: SignupRequest):
             detail="Consent to the privacy policy is required.",
         )
 
-    # 1. Check for duplicate email across ALL roles
-    # The requirement is that one email cannot exist in multiple roles.
-    found_user = None
-    for role_val in [Role.STUDENT.value, Role.COUNSELOR.value, Role.ADMIN.value]:
-        UserModel = get_model_for_role(role_val)
-        existing = await UserModel.find_one(UserModel.email == data.email)
-        if existing:
-            found_user = existing
-            break
+    # 1. Check for duplicate email across ALL roles in parallel for speed
+    t1 = time.time()
+    roles = [Role.STUDENT.value, Role.COUNSELOR.value, Role.ADMIN.value]
+    candidate_queries = [get_model_for_role(r).find_one(get_model_for_role(r).email == data.email) for r in roles]
+    
+    results = await asyncio.gather(*candidate_queries)
+    found_user = next((u for u in results if u is not None), None)
+    log.info(f"TIMING: Signup uniqueness check took {time.time() - t1:.2f}s")
 
     if found_user:
         log.warning(f"Signup conflict: email {data.email} already exists in role {found_user.role}")
@@ -121,13 +122,15 @@ async def signup(data: SignupRequest):
     UserModel = _get_role_model(data.role)
 
     # 2. Build role-specific instance
+    t2 = time.time()
     common_fields = dict(
         email=data.email,
         phone=data.phone,
-        hashed_password=hash_password(data.password),
+        hashed_password=await hash_password(data.password),
         consent_given_at=datetime.now(timezone.utc),
         consent_version=data.consent_version,
     )
+    log.info(f"TIMING: Password hashing took {time.time() - t2:.2f}s")
 
     try:
         if data.role == Role.STUDENT.value:
@@ -155,8 +158,8 @@ async def signup(data: SignupRequest):
         await token.insert()
         log.info(f"OTP generated and stored for {user.email}")
 
-        # 4. Send email
-        await email_service.send_verification_email(user.email, raw_otp)
+        # 4. Send email (Backgrounded to improve response time)
+        asyncio.create_task(email_service.send_verification_email(user.email, raw_otp))
         log.info(f"Verification email sent to {user.email}")
         
         return user, raw_otp
@@ -195,16 +198,23 @@ async def login(
     rate_key = f"login:{email}"
     rate_limiter.check(rate_key, settings.LOGIN_MAX_ATTEMPTS, settings.LOGIN_WINDOW_MINUTES * 60)
 
-    # 1. Find user across ALL roles to provide better feedback (e.g., Role Mismatch)
-    user = None
-    found_in_role = None
-    for role_val in [Role.STUDENT.value, Role.COUNSELOR.value, Role.ADMIN.value]:
-        UserModel = get_model_for_role(role_val)
-        candidate = await UserModel.find_one(UserModel.email == email)
-        if candidate:
-            user = candidate
-            found_in_role = role_val
-            break
+    # 1. Find user - Check requested role first for speed
+    t1 = time.time()
+    UserModel = get_model_for_role(role)
+    user = await UserModel.find_one(UserModel.email == email)
+    found_in_role = role if user else None
+
+    # If not found in requested role, check OTHER roles to provide better feedback (e.g., Role Mismatch)
+    if not user:
+        other_roles = [r.value for r in Role if r.value != role]
+        for role_val in other_roles:
+            UserModel = get_model_for_role(role_val)
+            candidate = await UserModel.find_one(UserModel.email == email)
+            if candidate:
+                user = candidate
+                found_in_role = role_val
+                break
+    log.info(f"TIMING: Login user lookup took {time.time() - t1:.2f}s")
 
     if user is None:
         log.warning(f"Login failed: user not found for {email}")
@@ -215,7 +225,11 @@ async def login(
         )
 
     # 2. Verify Password
-    if not verify_password(password, user.hashed_password):
+    t2 = time.time()
+    is_valid = await verify_password(password, user.hashed_password)
+    log.info(f"TIMING: Login password verification took {time.time() - t2:.2f}s")
+    
+    if not is_valid:
         log.warning(f"Login failed: incorrect password for {email}")
         rate_limiter.record(rate_key)
         user.failed_login_attempts += 1
@@ -386,7 +400,8 @@ async def resend_verification(email: str) -> None:
     )
     await token.insert()
     rate_limiter.record(rate_key)
-    await email_service.send_verification_email(user.email, raw_otp)
+    # Backgrounded to improve response time
+    asyncio.create_task(email_service.send_verification_email(user.email, raw_otp))
 
 
 # ── Password Reset ──
@@ -416,7 +431,8 @@ async def request_password_reset(email: str) -> None:
     )
     await reset.insert()
     rate_limiter.record(rate_key)
-    await email_service.send_password_reset_email(user.email, raw_token)
+    # Backgrounded to improve response time
+    asyncio.create_task(email_service.send_password_reset_email(user.email, raw_token))
 
 
 async def reset_password(raw_token: str, new_password: str) -> None:
@@ -452,7 +468,7 @@ async def reset_password(raw_token: str, new_password: str) -> None:
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
 
-    user.hashed_password = hash_password(new_password)
+    user.hashed_password = await hash_password(new_password)
     user.updated_at = datetime.now(timezone.utc)
     await user.save()
 
@@ -463,10 +479,10 @@ async def reset_password(raw_token: str, new_password: str) -> None:
 async def change_password(user, current_password: str, new_password: str) -> None:
     """Change password for a logged-in user after verifying the current password."""
     validate_password_format(new_password, is_signup=True)
-    if not verify_password(current_password, user.hashed_password):
+    if not await verify_password(current_password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Current password is incorrect."
         )
-    user.hashed_password = hash_password(new_password)
+    user.hashed_password = await hash_password(new_password)
     user.updated_at = datetime.now(timezone.utc)
     await user.save()

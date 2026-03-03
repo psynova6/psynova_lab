@@ -56,7 +56,6 @@ function StudentDashboard({ userProfile, onLogout, onProfileUpdate }: StudentDas
   // Persistent state using our custom hook for localStorage synchronization
   const [selectedPlan, setSelectedPlan] = usePersistentState<string | null>('selectedPlan', null);
   const [sessionHistory, setSessionHistory] = usePersistentState<Session[]>('sessionHistory', []);
-  const [chatHistory, setChatHistory] = usePersistentState<Message[]>('chatHistory', []);
   const [notifications, setNotifications] = usePersistentState<Notification[]>('notifications', []);
   const [lastCheckinCompleted, setLastCheckinCompleted] = usePersistentState<string | null>('lastCheckinCompleted', null);
   const [reminders, setReminders] = usePersistentState<Reminder[]>('reminders', []);
@@ -117,9 +116,6 @@ function StudentDashboard({ userProfile, onLogout, onProfileUpdate }: StudentDas
     });
   }, [setSessionHistory, addNotification]);
 
-  const handleNewMessage = useCallback((messages: Message[]) => {
-    setChatHistory(messages);
-  }, [setChatHistory])
 
   const handleAssessmentComplete = useCallback(() => {
     setIsAssessmentOpen(false);
@@ -339,8 +335,6 @@ function StudentDashboard({ userProfile, onLogout, onProfileUpdate }: StudentDas
         {isChatOpen && <ChatbotModal
           isOpen={isChatOpen}
           onClose={() => setIsChatOpen(false)}
-          chatHistory={chatHistory}
-          onNewMessage={handleNewMessage}
         />}
         {isAssessmentOpen && <AssessmentModal
           isOpen={isAssessmentOpen}
