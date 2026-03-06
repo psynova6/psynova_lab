@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+const fs = require('fs');
+const content = `import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
     AreaChart, Area,
-    ScatterChart, Scatter, ZAxis, Legend,
+    ScatterChart, Scatter, ZAxis,
     BarChart, Bar, Cell, PieChart, Pie
 } from 'recharts';
 import type { Department } from '../../types';
@@ -29,12 +30,12 @@ export const P = {
 };
 
 // Privacy helpers
-export const anonStudent = (i: number) => `Student ${['A', 'B', 'C', 'D', 'E', 'F', 'G'][i % 7]}`;
-export const anonTherapist = (i: number) => `Therapist ${i + 1}`;
+export const anonStudent = (i: number) => \\\`Student \\\${['A', 'B', 'C', 'D', 'E', 'F', 'G'][i % 7]}\\\`;
+export const anonTherapist = (i: number) => \\\`Therapist \\\${i + 1}\\\`;
 
 // Base Card Primitive
 export const PastelCard: React.FC<{ children: React.ReactNode; style?: React.CSSProperties }> = ({ children, style }) => (
-    <motion.div
+    <motion.div 
         variants={{
             hidden: { opacity: 0, y: 20 },
             visible: { opacity: 1, y: 0 }
@@ -44,7 +45,7 @@ export const PastelCard: React.FC<{ children: React.ReactNode; style?: React.CSS
             borderRadius: '20px',
             padding: '1.25rem',
             boxShadow: P.cardShadow,
-            border: `1px solid ${P.cardBorder}`,
+            border: \\\`1px solid \\\${P.cardBorder}\\\`,
             ...style
         }}
         whileHover={{ scale: 1.01, boxShadow: '0 12px 40px rgba(100, 90, 80, 0.08)' }}
@@ -64,7 +65,7 @@ export const CardHeader: React.FC<{ icon: React.ReactNode; title: string }> = ({
 // Tab Content
 const DepartmentOverview: React.FC<{ dept: Department }> = ({ dept }) => {
     return (
-        <motion.div
+        <motion.div 
             initial="hidden" animate="visible" exit="hidden"
             variants={{
                 hidden: { opacity: 0 },
@@ -135,7 +136,7 @@ const DepartmentOverview: React.FC<{ dept: Department }> = ({ dept }) => {
                                     <span style={{ fontWeight: 600, color: P.textMain }}>{s.v}</span>
                                 </div>
                                 <div style={{ height: '6px', background: P.bg, borderRadius: '3px', overflow: 'hidden' }}>
-                                    <motion.div initial={{ width: 0 }} animate={{ width: `${s.p}%` }} transition={{ duration: 1, delay: i * 0.2 }} style={{ height: '100%', background: i === 3 ? P.critical : P.safe }} />
+                                    <motion.div initial={{ width: 0 }} animate={{ width: \\\`\\\${s.p}%\\\` }} transition={{ duration: 1, delay: i * 0.2 }} style={{ height: '100%', background: i === 3 ? P.critical : P.safe }} />
                                 </div>
                             </div>
                         ))}
@@ -175,7 +176,7 @@ const StudentAnalytics: React.FC<{ dept: Department }> = ({ dept }) => {
         if (active && payload && payload.length) {
             const data = payload[0].payload;
             return (
-                <div style={{ background: '#fff', padding: '10px', borderRadius: '8px', border: `1px solid ${P.cardBorder}`, boxShadow: P.cardShadow }}>
+                <div style={{ background: '#fff', padding: '10px', borderRadius: '8px', border: \\\`1px solid \\\${P.cardBorder}\\\`, boxShadow: P.cardShadow }}>
                     <p style={{ margin: 0, fontWeight: 600 }}>{data.label || 'Timeline Check'}</p>
                     {payload.map((entry: any, index: number) => (
                         <p key={index} style={{ margin: 0, color: entry.color, fontSize: '0.85rem' }}>
@@ -189,7 +190,7 @@ const StudentAnalytics: React.FC<{ dept: Department }> = ({ dept }) => {
     };
 
     return (
-        <motion.div
+        <motion.div 
             initial="hidden" animate="visible" exit="hidden"
             variants={{
                 hidden: { opacity: 0 },
@@ -202,22 +203,15 @@ const StudentAnalytics: React.FC<{ dept: Department }> = ({ dept }) => {
                 <div style={{ height: 250, width: '100%' }}>
                     <ResponsiveContainer width="100%" height="100%">
                         <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke={P.cardBorder} />
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={P.cardBorder} />
                             <XAxis type="number" dataKey="sessions" name="Sessions" tick={{ fill: P.textMuted, fontSize: 10 }} axisLine={false} tickLine={false} />
-                            <YAxis type="number" dataKey="improvement" name="Improvement" tick={{ fill: P.textMuted, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v) => v === 0 ? '' : v} />
+                            <YAxis type="number" dataKey="improvement" name="Improvement" tick={{ fill: P.textMuted, fontSize: 10 }} axisLine={false} tickLine={false} />
                             <ZAxis type="number" dataKey="size" range={[60, 400]} />
                             <Tooltip content={<CustomTooltip />} cursor={{ strokeDasharray: '3 3' }} />
-                            <Legend content={() => (
-                                <div style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem', fontSize: '0.85rem', color: P.textMuted, paddingBottom: '10px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><span style={{ width: 10, height: 10, borderRadius: '50%', background: P.safe }} /> Safe</div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><span style={{ width: 10, height: 10, borderRadius: '50%', background: P.mild }} /> Mild</div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><span style={{ width: 10, height: 10, borderRadius: '50%', background: P.critical }} /> Critical</div>
-                                </div>
-                            )} verticalAlign="top" height={36} />
                             <Scatter name="Students" data={scatterData}>
                                 {
                                     scatterData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={entry.status === 'Safe' ? P.safe : entry.status === 'Mild' ? P.mild : P.critical} />
+                                        <Cell key={\\\`cell-\\\${index}\\\`} fill={entry.status === 'Safe' ? P.safe : entry.status === 'Mild' ? P.mild : P.critical} />
                                     ))
                                 }
                             </Scatter>
@@ -231,11 +225,10 @@ const StudentAnalytics: React.FC<{ dept: Department }> = ({ dept }) => {
                 <div style={{ height: 250, width: '100%' }}>
                     <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={timelineData} margin={{ top: 20, right: 20, left: 0, bottom: 20 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke={P.cardBorder} />
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={P.cardBorder} />
                             <XAxis dataKey="time" tick={{ fill: P.textMuted, fontSize: 10 }} axisLine={false} tickLine={false} />
-                            <YAxis tick={{ fill: P.textMuted, fontSize: 10 }} axisLine={false} tickLine={false} domain={[-2, 10]} tickFormatter={(v) => v === 0 ? '' : v} />
+                            <YAxis tick={{ fill: P.textMuted, fontSize: 10 }} axisLine={false} tickLine={false} domain={[-2, 10]} />
                             <Tooltip content={<CustomTooltip />} />
-                            <Legend verticalAlign="top" height={36} />
                             <Line type="monotone" name={anonStudent(0)} dataKey="studentA" stroke={P.critical} strokeWidth={3} dot={{ r: 4, fill: P.critical, strokeWidth: 2 }} activeDot={{ r: 6 }} />
                             <Line type="monotone" name={anonStudent(1)} dataKey="studentB" stroke={P.safe} strokeWidth={3} dot={{ r: 4, fill: P.safe, strokeWidth: 2 }} activeDot={{ r: 6 }} />
                         </LineChart>
@@ -275,7 +268,7 @@ const TherapistPerformance: React.FC<{ dept: Department }> = ({ dept }) => {
         if (active && payload && payload.length) {
             const data = payload[0].payload;
             return (
-                <div style={{ background: '#fff', padding: '10px', borderRadius: '8px', border: `1px solid ${P.cardBorder}`, boxShadow: P.cardShadow }}>
+                <div style={{ background: '#fff', padding: '10px', borderRadius: '8px', border: \\\`1px solid \\\${P.cardBorder}\\\`, boxShadow: P.cardShadow }}>
                     <p style={{ margin: 0, fontWeight: 600 }}>{data.label || data.name || 'Statistic'}</p>
                     {payload.map((entry: any, index: number) => (
                         <p key={index} style={{ margin: 0, color: entry.color || entry.payload.color, fontSize: '0.85rem' }}>
@@ -289,7 +282,7 @@ const TherapistPerformance: React.FC<{ dept: Department }> = ({ dept }) => {
     };
 
     return (
-        <motion.div
+        <motion.div 
             initial="hidden" animate="visible" exit="hidden"
             variants={{
                 hidden: { opacity: 0 },
@@ -302,22 +295,15 @@ const TherapistPerformance: React.FC<{ dept: Department }> = ({ dept }) => {
                 <div style={{ height: 250, width: '100%' }}>
                     <ResponsiveContainer width="100%" height="100%">
                         <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke={P.cardBorder} />
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={P.cardBorder} />
                             <XAxis type="number" dataKey="load" name="Student Load" tick={{ fill: P.textMuted, fontSize: 10 }} axisLine={false} tickLine={false} />
-                            <YAxis type="number" dataKey="outcome" name="Outcome %" tick={{ fill: P.textMuted, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v) => v === 0 ? '' : v} />
+                            <YAxis type="number" dataKey="outcome" name="Outcome %" tick={{ fill: P.textMuted, fontSize: 10 }} axisLine={false} tickLine={false} />
                             <ZAxis type="number" dataKey="size" range={[60, 400]} />
                             <Tooltip content={<CustomTooltip />} cursor={{ strokeDasharray: '3 3' }} />
-                            <Legend content={() => (
-                                <div style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem', fontSize: '0.85rem', color: P.textMuted, paddingBottom: '10px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><span style={{ width: 10, height: 10, borderRadius: '50%', background: P.safe }} /> Safe</div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><span style={{ width: 10, height: 10, borderRadius: '50%', background: P.mild }} /> Mild</div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><span style={{ width: 10, height: 10, borderRadius: '50%', background: P.critical }} /> Critical</div>
-                                </div>
-                            )} verticalAlign="top" height={36} />
                             <Scatter name="Therapists" data={loadData}>
                                 {
                                     loadData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={entry.status === 'Safe' ? P.safe : entry.status === 'Mild' ? P.mild : P.critical} />
+                                        <Cell key={\\\`cell-\\\${index}\\\`} fill={entry.status === 'Safe' ? P.safe : entry.status === 'Mild' ? P.mild : P.critical} />
                                     ))
                                 }
                             </Scatter>
@@ -331,11 +317,10 @@ const TherapistPerformance: React.FC<{ dept: Department }> = ({ dept }) => {
                 <div style={{ height: 250, width: '100%' }}>
                     <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={timelineData} margin={{ top: 20, right: 20, left: 0, bottom: 20 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke={P.cardBorder} />
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={P.cardBorder} />
                             <XAxis dataKey="time" tick={{ fill: P.textMuted, fontSize: 10 }} axisLine={false} tickLine={false} />
-                            <YAxis tick={{ fill: P.textMuted, fontSize: 10 }} axisLine={false} tickLine={false} domain={[-2, 10]} tickFormatter={(v) => v === 0 ? '' : v} />
+                            <YAxis tick={{ fill: P.textMuted, fontSize: 10 }} axisLine={false} tickLine={false} domain={[-2, 10]} />
                             <Tooltip content={<CustomTooltip />} />
-                            <Legend verticalAlign="top" height={36} />
                             <Line type="monotone" name={anonTherapist(0)} dataKey="therA" stroke={P.critical} strokeWidth={3} dot={{ r: 4, fill: P.critical, strokeWidth: 2 }} activeDot={{ r: 6 }} />
                             <Line type="monotone" name={anonTherapist(1)} dataKey="therB" stroke={P.safe} strokeWidth={3} dot={{ r: 4, fill: P.safe, strokeWidth: 2 }} activeDot={{ r: 6 }} />
                         </LineChart>
@@ -343,93 +328,44 @@ const TherapistPerformance: React.FC<{ dept: Department }> = ({ dept }) => {
                 </div>
             </PastelCard>
 
-            <PastelCard style={{ gridColumn: '1 / -1' }}>
-                <CardHeader icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18M3 15h18M9 3v18M15 3v18" /></svg>} title="Session Intensity Heatmap (by Day)" />
-                {(() => {
-                    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
-                    const therapists = [anonTherapist(0), anonTherapist(1), anonTherapist(2), anonTherapist(3)];
-                    // cells[therapist][day] = session count 0-10
-                    const cells: number[][] = [
-                        [2, 5, 8, 4, 6],
-                        [7, 3, 9, 2, 5],
-                        [4, 8, 6, 9, 3],
-                        [1, 4, 5, 7, 8],
-                    ];
-                    const maxVal = 10;
-                    const getColor = (v: number) => {
-                        const intensity = v / maxVal;
-                        // Interpolate from very light green to rich green
-                        const r = Math.round(240 - intensity * (240 - 80));
-                        const g = Math.round(248 - intensity * (248 - 160));
-                        const b = Math.round(240 - intensity * (240 - 100));
-                        return `rgb(${r},${g},${b})`;
-                    };
-                    const [hovered, setHovered] = React.useState<{ t: number; d: number } | null>(null);
-                    return (
-                        <div>
-                            {/* Legend */}
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', justifyContent: 'flex-end' }}>
-                                <span style={{ fontSize: '0.75rem', color: P.textMuted }}>Low</span>
-                                {[0.1, 0.3, 0.5, 0.7, 0.9].map(v => (
-                                    <div key={v} style={{ width: 18, height: 18, borderRadius: 4, background: getColor(v * maxVal) }} />
-                                ))}
-                                <span style={{ fontSize: '0.75rem', color: P.textMuted }}>High</span>
-                            </div>
-                            {/* Header row — days */}
-                            <div style={{ display: 'grid', gridTemplateColumns: `140px repeat(${days.length}, 1fr)`, gap: '6px', marginBottom: '6px' }}>
-                                <div />
-                                {days.map(d => (
-                                    <div key={d} style={{ textAlign: 'center', fontSize: '0.8rem', fontWeight: 600, color: P.textMuted }}>{d}</div>
-                                ))}
-                            </div>
-                            {/* Rows — therapists */}
-                            {therapists.map((therapist, ti) => (
-                                <div key={ti} style={{ display: 'grid', gridTemplateColumns: `140px repeat(${days.length}, 1fr)`, gap: '6px', marginBottom: '6px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', fontSize: '0.85rem', color: P.textMain, fontWeight: 500, paddingRight: '0.5rem' }}>{therapist}</div>
-                                    {days.map((day, di) => {
-                                        const val = cells[ti][di];
-                                        const isHov = hovered?.t === ti && hovered?.d === di;
-                                        return (
-                                            <div
-                                                key={di}
-                                                onMouseEnter={() => setHovered({ t: ti, d: di })}
-                                                onMouseLeave={() => setHovered(null)}
-                                                title={`${therapist} · ${day}: ${val} sessions`}
-                                                style={{
-                                                    height: 40,
-                                                    borderRadius: 8,
-                                                    background: getColor(val),
-                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                    fontSize: '0.8rem', fontWeight: 700,
-                                                    color: '#1a2d1e',
-                                                    cursor: 'pointer',
-                                                    outline: isHov ? `2px solid ${P.tabActiveBg}` : 'none',
-                                                    transform: isHov ? 'scale(1.08)' : 'scale(1)',
-                                                    transition: 'transform 0.15s, outline 0.15s',
-                                                    position: 'relative',
-                                                    boxShadow: isHov ? '0 4px 16px rgba(80,130,80,0.25)' : 'none',
-                                                }}
-                                            >
-                                                {val}
-                                                {isHov && (
-                                                    <div style={{
-                                                        position: 'absolute', bottom: '110%', left: '50%', transform: 'translateX(-50%)',
-                                                        background: 'white', border: `1px solid ${P.cardBorder}`, borderRadius: 8,
-                                                        padding: '6px 10px', whiteSpace: 'nowrap', boxShadow: P.cardShadow,
-                                                        fontSize: '0.78rem', color: P.textMain, fontWeight: 500, zIndex: 100,
-                                                        pointerEvents: 'none',
-                                                    }}>
-                                                        <strong>{therapist}</strong><br />{day}: {val} sessions
-                                                    </div>
-                                                )}
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            ))}
+            <PastelCard style={{ display: 'flex', flexDirection: 'column' }}>
+                <CardHeader icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>} title="Session Completion Rate" />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '2rem', flex: 1 }}>
+                    <div style={{ position: 'relative', width: '140px', height: '140px', flexShrink: 0 }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                                <Pie 
+                                    data={completionData} 
+                                    cx="50%" cy="50%" 
+                                    innerRadius={50} outerRadius={60} 
+                                    startAngle={90} endAngle={-270}
+                                    dataKey="value"
+                                    stroke="none"
+                                >
+                                    {completionData.map((entry, index) => (
+                                        <Cell key={\\\`cell-\\\${index}\\\`} fill={entry.color} />
+                                    ))}
+                                </Pie>
+                                <Tooltip content={<CustomTooltip />} />
+                            </PieChart>
+                        </ResponsiveContainer>
+                        <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} style={{ fontSize: '2rem', fontWeight: 700, color: P.textMain }}>78%</motion.div>
+                            <div style={{ fontSize: '0.7rem', color: P.textMuted, marginTop: '-4px' }}>225 Sessions</div>
                         </div>
-                    );
-                })()}
+                    </div>
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        <div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem', fontSize: '0.9rem', color: P.textMain, fontWeight: 500 }}>
+                                <span>Completed</span><span>Missed</span>
+                            </div>
+                            <div style={{ display: 'flex', height: '12px', borderRadius: '6px', overflow: 'hidden', gap: '2px' }}>
+                                <motion.div initial={{ width: 0 }} animate={{ width: '78%' }} transition={{ duration: 1 }} style={{ background: P.safe }} />
+                                <motion.div initial={{ width: 0 }} animate={{ width: '22%' }} transition={{ duration: 1 }} style={{ background: P.mild }} />
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </PastelCard>
         </motion.div>
     );
@@ -457,7 +393,7 @@ const TrendAnalysis: React.FC<{ dept: Department }> = ({ dept }) => {
     const CustomTooltip = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
             return (
-                <div style={{ background: '#fff', padding: '10px', borderRadius: '8px', border: `1px solid ${P.cardBorder}`, boxShadow: P.cardShadow }}>
+                <div style={{ background: '#fff', padding: '10px', borderRadius: '8px', border: \\\`1px solid \\\${P.cardBorder}\\\`, boxShadow: P.cardShadow }}>
                     <p style={{ margin: 0, fontWeight: 600 }}>{label}</p>
                     {payload.map((entry: any, index: number) => (
                         <p key={index} style={{ margin: 0, color: entry.color || entry.fill, fontSize: '0.85rem' }}>
@@ -471,7 +407,7 @@ const TrendAnalysis: React.FC<{ dept: Department }> = ({ dept }) => {
     };
 
     return (
-        <motion.div
+        <motion.div 
             initial="hidden" animate="visible" exit="hidden"
             variants={{
                 hidden: { opacity: 0 },
@@ -484,11 +420,10 @@ const TrendAnalysis: React.FC<{ dept: Department }> = ({ dept }) => {
                 <div style={{ height: 250, width: '100%' }}>
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={barData} margin={{ top: 20, right: 20, left: 0, bottom: 20 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke={P.cardBorder} />
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={P.cardBorder} />
                             <XAxis dataKey="sem" tick={{ fill: P.textMuted, fontSize: 10 }} axisLine={false} tickLine={false} />
-                            <YAxis tick={{ fill: P.textMuted, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v) => v === 0 ? '' : v} />
+                            <YAxis tick={{ fill: P.textMuted, fontSize: 10 }} axisLine={false} tickLine={false} />
                             <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0,0,0,0.05)' }} />
-                            <Legend verticalAlign="top" height={36} />
                             <Bar dataKey="Critical" stackId="a" fill={P.critical} />
                             <Bar dataKey="Mild" stackId="a" fill={P.mild} />
                             <Bar dataKey="Safe" stackId="a" fill={P.safe} radius={[4, 4, 0, 0]} />
@@ -502,11 +437,10 @@ const TrendAnalysis: React.FC<{ dept: Department }> = ({ dept }) => {
                 <div style={{ height: 250, width: '100%' }}>
                     <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={areaData} margin={{ top: 20, right: 20, left: 0, bottom: 20 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke={P.cardBorder} />
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={P.cardBorder} />
                             <XAxis dataKey="px" tick={{ fill: P.textMuted, fontSize: 10 }} axisLine={false} tickLine={false} />
-                            <YAxis tick={{ fill: P.textMuted, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v) => v === 0 ? '' : v} />
+                            <YAxis tick={{ fill: P.textMuted, fontSize: 10 }} axisLine={false} tickLine={false} />
                             <Tooltip content={<CustomTooltip />} />
-                            <Legend verticalAlign="top" height={36} />
                             <Area type="monotone" name={anonStudent(0)} dataKey="studentA" stroke={P.critical} fill={P.critical} fillOpacity={0.2} strokeWidth={3} />
                             <Area type="monotone" name={anonStudent(1)} dataKey="studentB" stroke={P.safe} fill={P.safe} fillOpacity={0.2} strokeWidth={3} />
                         </AreaChart>
@@ -528,30 +462,28 @@ export default function DepartmentDetailView({ department, onBack }: { departmen
     ] as const;
 
     return (
-        <motion.div
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
+        <motion.div 
+            initial={{ opacity: 0, scale: 0.98 }} 
+            animate={{ opacity: 1, scale: 1 }} 
             style={{ backgroundColor: P.bg, minHeight: '100%', borderRadius: '32px', padding: '2rem 3rem', fontFamily: 'system-ui, -apple-system, sans-serif' }}
         >
-            <div style={{ display: 'flex', alignItems: 'center', position: 'relative', marginBottom: '2rem', minHeight: '40px' }}>
-                <motion.button
+            <div style={{ textAlign: 'center', marginBottom: '2rem', position: 'relative' }}>
+                <motion.button 
                     whileHover={{ x: -5, opacity: 1 }}
                     onClick={onBack} aria-label="Back" style={{
-                        background: 'transparent', border: 'none', cursor: 'pointer', color: P.textMuted,
-                        display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', fontWeight: 500,
-                        zIndex: 10
-                    }}>
+                    position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)',
+                    background: 'transparent', border: 'none', cursor: 'pointer', color: P.textMuted,
+                    display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', fontWeight: 500
+                }}>
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
                     Back
                 </motion.button>
-                <div style={{ position: 'absolute', left: 0, right: 0, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
-                    <h1 style={{ fontSize: '2rem', fontWeight: 600, color: P.textMain, margin: 0, pointerEvents: 'auto' }}>
-                        {activeTab === 'overview' && 'Department Overview'}
-                        {activeTab === 'students' && 'Student Analytics'}
-                        {activeTab === 'therapists' && 'Therapist Performance'}
-                        {activeTab === 'trends' && 'Trend Analysis'}
-                    </h1>
-                </div>
+                <h1 style={{ fontSize: '2rem', fontWeight: 600, color: P.textMain, margin: 0 }}>
+                    {activeTab === 'overview' && 'Department Overview'}
+                    {activeTab === 'students' && 'Student Analytics'}
+                    {activeTab === 'therapists' && 'Therapist Performance'}
+                    {activeTab === 'trends' && 'Trend Analysis'}
+                </h1>
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginBottom: '2.5rem' }}>
@@ -559,9 +491,9 @@ export default function DepartmentDetailView({ department, onBack }: { departmen
                     {tabs.map(t => {
                         const isActive = activeTab === t.id;
                         return (
-                            <motion.button
-                                key={t.id}
-                                onClick={() => setActiveTab(t.id)}
+                            <motion.button 
+                                key={t.id} 
+                                onClick={() => setActiveTab(t.id)} 
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
                                 style={{
@@ -598,4 +530,6 @@ export default function DepartmentDetailView({ department, onBack }: { departmen
             </AnimatePresence>
         </motion.div>
     );
-}
+}`;
+fs.writeFileSync('components/institution/DepartmentDetailView.tsx', content);
+console.log('done!');

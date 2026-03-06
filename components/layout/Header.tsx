@@ -65,10 +65,12 @@ const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="sticky top-0 bg-[#f1ece9] z-40 transition-all duration-300 hover:shadow-md">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-14 md:h-16">
-          <div className="flex items-center min-w-0 ml-2 md:ml-6">
-            <Logo className="h-10 md:h-12 w-auto scale-[1.3] origin-left transition-all duration-300" />
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-full">
+        <div className="flex items-center justify-between h-16 md:h-20">
+          <div className="flex items-center ml-2 md:ml-4 flex-shrink-0 overflow-visible">
+            <div style={{ transform: 'scale(4.0)', transformOrigin: 'center left', display: 'inline-flex' }}>
+              <Logo className="h-8 md:h-9 w-auto transition-all duration-300" />
+            </div>
           </div>
           <div className="flex items-center space-x-2 flex-shrink-0">
             <div className="relative" ref={notificationsRef}>
