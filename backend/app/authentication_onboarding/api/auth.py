@@ -2,6 +2,7 @@
 Auth routes — signup, login, refresh, logout.
 """
 
+import logging
 from typing import Annotated
 
 from beanie import PydanticObjectId
@@ -14,7 +15,7 @@ from app.authentication_onboarding.core.security import (
     decode_token,
     hash_token,
 )
-from app.authentication_onboarding.models.user import User
+from app.authentication_onboarding.models.user import AnyUser, get_model_for_role
 from app.authentication_onboarding.schemas.auth import (
     LoginRequest,
     MessageResponse,
@@ -22,9 +23,16 @@ from app.authentication_onboarding.schemas.auth import (
     SignupRequest,
     SignupResponse,
     TokenPair,
+    VerifyEmailRequest,
+    ResendVerificationRequest,
+    ForgotPasswordRequest,
+    ResetPasswordRequest,
+    ChangePasswordRequest,
 )
 from app.authentication_onboarding.services import auth_service, session_service
 from app.config import settings
+
+log = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
@@ -47,6 +55,7 @@ async def signup(data: SignupRequest):
     Sends a 6-digit OTP to the provided email for verification.
     """
     user, _ = await auth_service.signup(data)
+    log.info(f"Signup successful for {user.email}")
     return SignupResponse(
         id=str(user.id),
         email=user.email,
@@ -54,6 +63,38 @@ async def signup(data: SignupRequest):
         is_verified=user.is_verified,
         message="Account created. Please verify your email with the OTP sent.",
     )
+
+
+@router.post(
+    "/verify-email",
+    response_model=MessageResponse,
+    summary="Verify email with OTP",
+    responses={
+        400: {"description": "Invalid or expired OTP"},
+        404: {"description": "User not found"},
+    },
+)
+async def verify_email(data: VerifyEmailRequest):
+    """
+    Verify the user's email using the 6-digit OTP.
+    """
+    await auth_service.verify_email_otp(data.email, data.code)
+    log.info(f"Email verified successfully for {data.email}")
+    return MessageResponse(message="Email verified successfully. You can now log in.")
+
+
+@router.post(
+    "/resend-verification",
+    response_model=MessageResponse,
+    summary="Resend verification OTP",
+)
+async def resend_verification(data: ResendVerificationRequest):
+    """
+    Generate and send a new OTP to the user's email.
+    """
+    await auth_service.resend_verification(data.email)
+    log.info(f"Verification code resend requested for {data.email}")
+    return MessageResponse(message="If an unverified account exists, a new code has been sent.")
 
 
 @router.post(
@@ -74,13 +115,16 @@ async def login(data: LoginRequest, request: Request):
     Pass `remember_me: true` for a 30-day refresh token (default 7 days).
     """
     ip = request.client.host if request.client else None
-    return await auth_service.login(
+    tokens = await auth_service.login(
         email=data.email,
         password=data.password,
+        role=data.role,
         remember_me=data.remember_me,
         device_info=data.device_info,
         ip_address=ip,
     )
+    log.info(f"Login successful for {data.email} as {data.role}")
+    return tokens
 
 
 @router.post(
@@ -117,7 +161,20 @@ async def refresh(data: RefreshRequest):
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Token mismatch."
         )
 
-    user = await User.get(PydanticObjectId(user_id))
+    role = payload.get("role")
+    if not role:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token payload: role missing."
+        )
+
+    try:
+        UserModel = get_model_for_role(role)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid role in token."
+        )
+
+    user = await UserModel.get(PydanticObjectId(user_id))
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found."
@@ -139,7 +196,7 @@ async def refresh(data: RefreshRequest):
 )
 async def logout(
     data: RefreshRequest,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[AnyUser, Depends(get_current_user)],
 ):
     """Revoke the refresh token for the current session."""
     try:

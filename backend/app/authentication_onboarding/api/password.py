@@ -7,7 +7,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 
 from app.authentication_onboarding.core.dependencies import get_current_user
-from app.authentication_onboarding.models.user import User
+from app.authentication_onboarding.models.user import AnyUser
 from app.authentication_onboarding.schemas.auth import (
     ChangePasswordRequest,
     ForgotPasswordRequest,
@@ -59,7 +59,7 @@ async def reset_password(data: ResetPasswordRequest):
 )
 async def change_password(
     data: ChangePasswordRequest,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[AnyUser, Depends(get_current_user)],
 ):
     """Change the password for the currently logged-in user."""
     await auth_service.change_password(

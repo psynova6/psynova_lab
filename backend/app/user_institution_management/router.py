@@ -4,7 +4,7 @@ from .schemas import (
     UserProfileUpdate, RoleAssignment, UserInstitutionResponse
 )
 from .crud import UserInstitutionService
-from app.authentication_onboarding.models.user import User, Role
+from app.authentication_onboarding.models.user import AnyUser, Role
 from app.authentication_onboarding.core.dependencies import role_required
 
 router = APIRouter(prefix="/management", tags=["User & Institution Management"])

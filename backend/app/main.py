@@ -8,7 +8,8 @@ backend runs as a single `uvicorn app.main:app` process.
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+import time
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import close_db, connect_db
@@ -19,12 +20,34 @@ logging.basicConfig(level=logging.INFO)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Startup: connect to MongoDB.  Shutdown: close the connection."""
+    """Startup: connect to MongoDB and pre-load AI models. Shutdown: close the connection."""
     await connect_db()
-    log.info("✅ Connected to MongoDB and initialised Beanie ODM.")
+    log.info("Connected to MongoDB and initialised Beanie ODM.")
+    
+    # Pre-load Syna AI models to eliminate first-request latency
+    try:
+        from app.syna_ai.router import get_models_and_utils
+        import asyncio
+        import threading
+        
+        def preload():
+            log.info("🧠 Pre-loading Syna AI models...")
+            utils = get_models_and_utils()
+            # Trigger lazy loads
+            utils["predict_risk_ensemble"]("test")
+            utils["predict_risk_xgb"]("test")
+            utils["predict_temporal_risk_lstm"](["test"])
+            utils["detect_semantic_risk"]("test")
+            log.info("✅ Syna AI models pre-loaded.")
+
+        # Run pre-loading in a separate thread to not block server startup
+        threading.Thread(target=preload, daemon=True).start()
+    except Exception as e:
+        log.error(f"Failed to pre-load AI models: {e}")
+
     yield
     await close_db()
-    log.info("🛑 MongoDB connection closed.")
+    log.info("MongoDB connection closed.")
 
 
 app = FastAPI(
@@ -39,16 +62,17 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
 
-@app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request, exc):
-    log.error(f"Validation error for {request.url}: {exc.errors()}")
-    return JSONResponse(
-        status_code=422,
-        content={"detail": exc.errors()},
-    )
+# ── Global Request Logger Middleware ──
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start_time = time.time()
+    response = await call_next(request)
+    duration = time.time() - start_time
+    log.info(f"REQ: {request.method} {request.url.path} - {response.status_code} ({duration:.2f}s)")
+    return response
+
+# Removed custom validation error handler to fix serialization issues. Default handler will be used.
 
 
 # ── CORS (adjust origins for production) ──
@@ -72,7 +96,15 @@ app.include_router(auth_onboarding_router)
 from app.user_institution_management import router as management_router
 app.include_router(management_router)
 
-# 3. (Future components go here)
+# 3. Syna AI Chatbot
+from app.syna_ai.router import router as syna_router
+app.include_router(syna_router)
+
+# 4. Games Progress Tracking
+from app.games.router import router as games_router
+app.include_router(games_router)
+
+# 5. (Future components go here)
 
 
 @app.get("/", tags=["Health"])

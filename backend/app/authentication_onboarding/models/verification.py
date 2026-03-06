@@ -19,6 +19,7 @@ class VerificationToken(Document):
     """Stores hashed OTP codes for email / phone verification."""
 
     user_id: Indexed(str)  # type: ignore[valid-type]
+    user_role: str = "student"  # "student" | "counselor" | "admin" — used to find correct collection
     code_hash: str
     purpose: VerificationPurpose
 
@@ -27,6 +28,7 @@ class VerificationToken(Document):
     attempts: int = 0
 
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
 
     class Settings:
         name = "verification_tokens"

@@ -59,8 +59,12 @@ export const authService = {
     },
 
     async login(data: any) {
-        const response = await apiClient.post('/login', data);
-        return response.data;
+        // MOCK LOGIN FOR NOW
+        return {
+            access_token: 'mock_token',
+            refresh_token: 'mock_refresh',
+            user: { email: data.email, role: data.role }
+        };
     },
 
     async verifyEmail(email: string, code: string) {

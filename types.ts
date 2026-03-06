@@ -6,6 +6,7 @@ export type UserRoleType = 'student' | 'therapist' | 'assistant' | 'volunteer';
 export interface Message {
   role: 'user' | 'model';
   text: string;
+  timestamp?: string;
 }
 
 export interface FeatureCardProps {

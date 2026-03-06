@@ -2,19 +2,31 @@
 Pydantic schemas for authentication requests and responses.
 """
 
+import re
 from datetime import datetime
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
+
+# --- Validation Constants ---
+EMAIL_REGEX = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+PASSWORD_REGEX = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
 
 
 # ── Signup ──
 
 
 class SignupRequest(BaseModel):
-    email: EmailStr
+    email: str = Field(..., pattern=EMAIL_REGEX)
     phone: str | None = Field(None, max_length=20, examples=["+919876543210"])
     password: str = Field(..., min_length=8, max_length=128)
     role: str = Field("student", pattern="^(student|counselor|admin)$")
+
+    @field_validator("password")
+    @classmethod
+    def validate_password_complexity(cls, v: str) -> str:
+        if not re.match(PASSWORD_REGEX, v):
+            raise ValueError("Weak password pattern")
+        return v
     institution_id: str | None = None
     consent: bool = Field(
         ..., description="User must accept privacy policy and terms."
@@ -34,8 +46,16 @@ class SignupResponse(BaseModel):
 
 
 class LoginRequest(BaseModel):
-    email: EmailStr
-    password: str
+    email: str = Field(..., pattern=EMAIL_REGEX)
+    password: str = Field(...)
+    role: str = Field(..., pattern="^(student|counselor|admin)$")
+
+    @field_validator("password")
+    @classmethod
+    def validate_password_format(cls, v: str) -> str:
+        if not re.match(PASSWORD_REGEX, v):
+            raise ValueError("Invalid password format")
+        return v
     remember_me: bool = False
     device_info: str | None = None
 
@@ -74,10 +94,24 @@ class ResetPasswordRequest(BaseModel):
     token: str
     new_password: str = Field(..., min_length=8, max_length=128)
 
+    @field_validator("new_password")
+    @classmethod
+    def validate_password_complexity(cls, v: str) -> str:
+        if not re.match(PASSWORD_REGEX, v):
+            raise ValueError("Weak password pattern")
+        return v
+
 
 class ChangePasswordRequest(BaseModel):
     current_password: str
     new_password: str = Field(..., min_length=8, max_length=128)
+
+    @field_validator("new_password")
+    @classmethod
+    def validate_password_complexity(cls, v: str) -> str:
+        if not re.match(PASSWORD_REGEX, v):
+            raise ValueError("Weak password pattern")
+        return v
 
 
 # ── Generic Responses ──

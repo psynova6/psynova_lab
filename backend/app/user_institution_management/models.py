@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 User & Institution Management Models (MongoDB / Beanie).
 """
@@ -5,9 +6,9 @@ User & Institution Management Models (MongoDB / Beanie).
 from datetime import datetime, timezone
 from typing import List, Optional
 from pydantic import Field
-from beanie import Document, Indexed, Link, before_event, Insert, Replace, Update
+from beanie import Document, Indexed, Link, before_event, Insert, Replace, Update, PydanticObjectId
 import pymongo
-from app.authentication_onboarding.models.user import User, Role
+from app.authentication_onboarding.models.user import AnyUser, Role, get_model_for_role
 
 class Institution(Document):
     """Represents an education institution (College/University)."""
@@ -29,7 +30,8 @@ class Institution(Document):
 
 class InstitutionUser(Document):
     """Relationship between Users and Institutions, allowing multiple roles."""
-    user: Link[User]
+    user_id: PydanticObjectId
+    user_role: Role
     institution: Link[Institution]
     
     # List of roles within this institution (e.g., "student", "counselor", "admin")
@@ -43,8 +45,17 @@ class InstitutionUser(Document):
     async def update_timestamp(self):
         self.updated_at = datetime.now(timezone.utc)
 
+    async def fetch_user(self) -> Optional[AnyUser]:
+        """Manually resolve the user across role-based collections."""
+        model = get_model_for_role(self.user_role)
+        return await model.get(self.user_id)
+
     class Settings:
         name = "institution_users"
         indexes = [
-            pymongo.IndexModel([("user", pymongo.ASCENDING), ("institution", pymongo.ASCENDING)], unique=True)
+            pymongo.IndexModel([("user_id", pymongo.ASCENDING), ("institution", pymongo.ASCENDING)], unique=True)
         ]
+
+
+Institution.model_rebuild()
+InstitutionUser.model_rebuild()

@@ -1,6 +1,6 @@
-# Psynera: Digital Mental Health Platform
+# Psynova: Digital Mental Health Platform
 
-Psynera is a modern, responsive web application designed to provide accessible and private mental health support for students. It leverages AI for initial guidance, offers a suite of self-help tools, and facilitates connections with professional therapists in a secure environment.
+Psynova is a modern, responsive web application designed to provide accessible and private mental health support for students. It leverages AI for initial guidance, offers a suite of self-help tools, and facilitates connections with professional therapists in a secure environment.
 
 ## Key Features
 

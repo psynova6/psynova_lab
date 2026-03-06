@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { BreathingIcon, PuzzleIcon, BookOpenIcon } from '../common/icons';
 import BreathingExercise from './BreathingExercise';
+import MindfulGames from './MindfulGames';
 
 interface CopingToolsModalProps {
   isOpen: boolean;
@@ -33,7 +34,7 @@ const CopingToolsModal: React.FC<CopingToolsModalProps> = ({ isOpen, onClose }) 
   if (!isOpen) return null;
 
   const handleToolClick = (toolName: string) => {
-    if (toolName === 'Guided Breathing') {
+    if (toolName === 'Guided Breathing' || toolName === 'Mindfulness Games') {
       setActiveTool(toolName);
     } else {
       alert(`Tool selected: ${toolName}. This feature is coming soon!`);
@@ -66,9 +67,11 @@ const CopingToolsModal: React.FC<CopingToolsModalProps> = ({ isOpen, onClose }) 
           <button onClick={handleClose} aria-label="Close coping tools" className="text-brand-dark-green/70 hover:text-brand-dark-green text-3xl font-light leading-none">&times;</button>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-6 md:p-8">
+        <div className="flex-1 overflow-y-auto p-6 md:p-8 relative">
           {activeTool === 'Guided Breathing' ? (
             <BreathingExercise onBack={handleBack} />
+          ) : activeTool === 'Mindfulness Games' ? (
+            <MindfulGames onBack={handleBack} />
           ) : (
             <>
               <p className="text-brand-dark-green/80 mb-6 text-center">

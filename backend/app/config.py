@@ -3,7 +3,10 @@ Centralised application settings loaded from environment variables / .env file.
 """
 
 from pydantic_settings import BaseSettings
+from dotenv import load_dotenv
 
+# Force .env to override system environment variables for local development stability
+load_dotenv(override=True)
 
 class Settings(BaseSettings):
     # ── MongoDB ──
@@ -13,7 +16,7 @@ class Settings(BaseSettings):
     # ── JWT ──
     SECRET_KEY: str = "change-me-to-a-random-64-char-string"
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     REMEMBER_ME_EXPIRE_DAYS: int = 30
 
@@ -31,7 +34,19 @@ class Settings(BaseSettings):
     RESEND_API_KEY: str = ""
     EMAIL_FROM: str = "onboarding@resend.dev"
 
-    model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
+    # ── Security & AI ──
+    ENCRYPTION_MASTER_KEY: str = ""
+    GEMINI_API_KEY: str = ""
+
+    # ── Database Credentials (Optional override) ──
+    MONGODB_USER: str = ""
+    MONGODB_PASSWORD: str = ""
+
+    model_config = {
+        "env_file": ".env",
+        "env_file_encoding": "utf-8",
+        "extra": "ignore"
+    }
 
 
 settings = Settings()

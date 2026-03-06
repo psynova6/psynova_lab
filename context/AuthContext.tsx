@@ -8,7 +8,7 @@ interface AuthContextType {
     userProfile: UserProfile;
     role: Role | null;
     setRole: (role: Role | null) => void;
-    login: (email: string, password: string, rememberMe: boolean) => Promise<any>;
+    login: (email: string, password: string, role: Role, rememberMe: boolean) => Promise<any>;
     signup: (data: any) => Promise<any>;
     verify: (email: string, otp: string) => Promise<any>;
     resendOTP: (email: string) => Promise<any>;
@@ -31,11 +31,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         'institution': 'admin'
     };
 
-    const login = useCallback(async (email: string, password: string, rememberMe: boolean) => {
+    const login = useCallback(async (email: string, password: string, attemptRole: Role, rememberMe: boolean) => {
         try {
             const response = await authService.login({
                 email,
                 password,
+                role: roleMap[attemptRole] || 'student',
                 remember_me: rememberMe,
                 device_info: navigator.userAgent
             });
@@ -77,11 +78,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const logout = useCallback(async () => {
         const refreshToken = localStorage.getItem('refreshToken');
 
-        // --- UX First: Clear local state immediately ---
-        localStorage.removeItem('isAuthenticated');
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        sessionStorage.removeItem('isAuthenticated');
+        // --- UX First: Clear ALL local state immediately to prevent data leakage ---
+        localStorage.clear();
+        sessionStorage.clear();
 
         setIsAuthenticated(false);
         setRole(null);

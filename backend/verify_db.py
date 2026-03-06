@@ -20,9 +20,9 @@ async def verify_connection():
         client = AsyncIOMotorClient(settings.MONGODB_URL, serverSelectionTimeoutMS=5000)
         print("Pinging Atlas...")
         await client.admin.command('ping')
-        print("✅ Successfully connected to MongoDB Atlas!")
+        print("Successfully connected to MongoDB Atlas!")
     except Exception as e:
-        print(f"❌ Connection failed: {type(e).__name__}: {e}")
+        print(f"Connection failed: {type(e).__name__}: {e}")
 
 if __name__ == "__main__":
     asyncio.run(verify_connection())

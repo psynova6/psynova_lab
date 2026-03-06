@@ -12,17 +12,19 @@ from app.config import settings
 
 # ── Password hashing ──
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__rounds=12)
+pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
 
-def hash_password(plain: str) -> str:
-    """Hash a plaintext password using bcrypt with 12 rounds."""
-    return pwd_context.hash(plain)
+import asyncio
+
+async def hash_password(plain: str) -> str:
+    """Hash a plaintext password using Argon2id in a threadpool."""
+    return await asyncio.to_thread(pwd_context.hash, plain)
 
 
-def verify_password(plain: str, hashed: str) -> bool:
-    """Constant-time bcrypt verification."""
-    return pwd_context.verify(plain, hashed)
+async def verify_password(plain: str, hashed: str) -> bool:
+    """Argon2id password verification in a threadpool."""
+    return await asyncio.to_thread(pwd_context.verify, plain, hashed)
 
 
 # ── JWT tokens ──
@@ -43,6 +45,7 @@ def create_access_token(
 
 def create_refresh_token(
     sub: str,
+    role: str,
     session_id: str,
     remember_me: bool = False,
 ) -> str:
@@ -51,6 +54,7 @@ def create_refresh_token(
     expire = datetime.now(timezone.utc) + timedelta(days=days)
     payload = {
         "sub": sub,
+        "role": role,
         "sid": session_id,
         "type": "refresh",
         "exp": expire,

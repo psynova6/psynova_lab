@@ -7,7 +7,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.authentication_onboarding.core.dependencies import get_current_user
-from app.authentication_onboarding.models.user import User
+from app.authentication_onboarding.models.user import AnyUser
 from app.authentication_onboarding.schemas.auth import MessageResponse, SessionOut
 from app.authentication_onboarding.services import session_service
 
@@ -20,7 +20,7 @@ router = APIRouter(prefix="/api/auth", tags=["Sessions"])
     summary="List active sessions",
 )
 async def list_sessions(
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[AnyUser, Depends(get_current_user)],
 ):
     """Return all active (non-revoked, non-expired) sessions for the current user."""
     sessions = await session_service.list_user_sessions(str(current_user.id))
@@ -44,7 +44,7 @@ async def list_sessions(
 )
 async def revoke_session(
     session_id: str,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[AnyUser, Depends(get_current_user)],
 ):
     """Revoke a specific session (single-device logout)."""
     revoked = await session_service.revoke_session(session_id, str(current_user.id))
@@ -62,7 +62,7 @@ async def revoke_session(
     summary="Logout from all devices",
 )
 async def revoke_all_sessions(
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[AnyUser, Depends(get_current_user)],
 ):
     """Revoke all active sessions for the current user (logout everywhere)."""
     count = await session_service.revoke_all_sessions(str(current_user.id))
