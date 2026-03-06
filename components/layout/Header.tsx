@@ -64,7 +64,7 @@ const Header: React.FC<HeaderProps> = ({
   }
 
   return (
-    <header className="sticky top-0 bg-[#f1ece9] z-40 transition-all duration-300">
+    <header className="sticky top-0 bg-[#f1ece9] z-40 transition-all duration-300 hover:shadow-md">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-14 md:h-16">
           <div className="flex items-center min-w-0 ml-2 md:ml-6">
@@ -75,11 +75,13 @@ const Header: React.FC<HeaderProps> = ({
               <button
                 onClick={handleNotificationsClick}
                 aria-label="Open notifications"
-                className="relative p-2 rounded-full text-brand-dark-green hover:bg-brand-light-green/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-dark-green"
+                className="relative p-2 rounded-full text-brand-dark-green hover:bg-brand-light-green/30
+                           hover:scale-110 transition-all duration-200
+                           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-dark-green"
               >
                 <NotificationIcon className="h-6 w-6" />
                 {hasUnreadNotifications && (
-                  <span className="absolute top-1 right-1 block h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-brand-background"></span>
+                  <span className="absolute top-1 right-1 block h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-brand-background animate-bounce-in"></span>
                 )}
               </button>
               <NotificationsDropdown
@@ -97,7 +99,9 @@ const Header: React.FC<HeaderProps> = ({
               <button
                 onClick={handleAccountToggle}
                 aria-label="Open account menu"
-                className="rounded-full text-brand-dark-green hover:bg-brand-light-green/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-dark-green"
+                className="rounded-full text-brand-dark-green hover:bg-brand-light-green/30
+                           hover:scale-110 transition-all duration-200
+                           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-dark-green"
               >
                 {userProfile.avatar ? (
                   <img src={userProfile.avatar} alt="User Avatar" className="h-8 w-8 rounded-full object-cover" />

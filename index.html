@@ -177,6 +177,180 @@
       -webkit-backdrop-filter: blur(12px);
       border: 1px solid rgba(255, 255, 255, 0.4);
     }
+
+    /* ── NEW ANIMATION KEYFRAMES ── */
+
+    @keyframes slideInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-32px) scale(0.97);
+      }
+
+      70% {
+        transform: translateY(4px) scale(1.01);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes floatCard {
+      from {
+        transform: translateY(0px);
+      }
+
+      to {
+        transform: translateY(-8px);
+      }
+    }
+
+    @keyframes shimmerBorder {
+      0% {
+        background-position: -200% center;
+      }
+
+      100% {
+        background-position: 200% center;
+      }
+    }
+
+    @keyframes pulseGlow {
+
+      0%,
+      100% {
+        box-shadow: 0 0 0 0 rgba(146, 187, 128, 0);
+      }
+
+      50% {
+        box-shadow: 0 0 16px 6px rgba(146, 187, 128, 0.45);
+      }
+    }
+
+    @keyframes scaleIn {
+      from {
+        opacity: 0;
+        transform: scale(0.88);
+      }
+
+      70% {
+        transform: scale(1.03);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes bounceIn {
+      0% {
+        transform: scale(0);
+        opacity: 0;
+      }
+
+      60% {
+        transform: scale(1.3);
+        opacity: 1;
+      }
+
+      80% {
+        transform: scale(0.85);
+      }
+
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    @keyframes msgInLeft {
+      from {
+        opacity: 0;
+        transform: translateX(-18px) scale(0.95);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+      }
+    }
+
+    @keyframes msgInRight {
+      from {
+        opacity: 0;
+        transform: translateX(18px) scale(0.95);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+      }
+    }
+
+    @keyframes spinSlow {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* ── NEW ANIMATION UTILITY CLASSES ── */
+
+    .animate-slide-in-down {
+      opacity: 0;
+      animation: slideInDown 0.75s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+
+    .float-card {
+      animation: floatCard 3.5s ease-in-out infinite alternate;
+    }
+
+    .shimmer-card {
+      position: relative;
+      border: 2px solid transparent;
+      background-clip: padding-box;
+    }
+
+    .shimmer-card::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: inherit;
+      background: linear-gradient(120deg,
+          transparent 20%,
+          rgba(146, 187, 128, 0.55) 40%,
+          rgba(255, 255, 255, 0.7) 50%,
+          rgba(146, 187, 128, 0.55) 60%,
+          transparent 80%);
+      background-size: 200% 100%;
+      animation: shimmerBorder 3.5s linear infinite;
+      z-index: -1;
+      border-radius: inherit;
+    }
+
+    .pulse-glow {
+      animation: pulseGlow 2s ease-in-out infinite;
+    }
+
+    .animate-scale-in {
+      animation: scaleIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+
+    .animate-bounce-in {
+      animation: bounceIn 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+    }
+
+    .msg-in-left {
+      animation: msgInLeft 0.35s ease-out both;
+    }
+
+    .msg-in-right {
+      animation: msgInRight 0.35s ease-out both;
+    }
+
+    .animate-spin-slow {
+      animation: spinSlow 8s linear infinite;
+    }
   </style>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

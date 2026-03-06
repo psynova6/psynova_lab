@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import type { Message } from '../../types';
 import { synaAiService } from '../../services/synaAiService';
@@ -96,15 +95,25 @@ const ChatbotModal: React.FC<ChatbotModalProps> = ({ isOpen, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-brand-background rounded-[2rem] shadow-2xl w-full max-w-lg h-full max-h-[700px] flex flex-col">
+      <div className="animate-scale-in bg-brand-background rounded-[2rem] shadow-2xl w-full max-w-lg h-full max-h-[700px] flex flex-col">
         <header className="flex items-center justify-between p-4 border-b border-brand-light-green/50">
           <h2 className="text-xl font-bold text-brand-dark-green">Chat with Syna</h2>
-          <button onClick={onClose} aria-label="Close chat" className="text-brand-dark-green/70 hover:text-brand-dark-green text-3xl font-light leading-none">&times;</button>
+          <button
+            onClick={onClose}
+            aria-label="Close chat"
+            className="text-brand-dark-green/70 hover:text-brand-dark-green text-3xl font-light leading-none hover:rotate-90 transition-transform duration-200"
+          >
+            &times;
+          </button>
         </header>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
           {localHistory.map((msg, index) => (
-            <div key={index} className={`flex items-start gap-3 ${msg.role === 'user' ? 'justify-end' : ''}`}>
+            <div
+              key={index}
+              className={`flex items-start gap-3 ${msg.role === 'user' ? 'justify-end' : ''} ${msg.role === 'user' ? 'msg-in-right' : 'msg-in-left'}`}
+              style={{ animationDelay: `${Math.min(index * 40, 300)}ms` }}
+            >
               {msg.role === 'model' && (
                 <div className="w-8 h-8 rounded-full bg-brand-light-green flex items-center justify-center text-brand-dark-green font-bold text-lg flex-shrink-0">S</div>
               )}
@@ -128,7 +137,7 @@ const ChatbotModal: React.FC<ChatbotModalProps> = ({ isOpen, onClose }) => {
           ))}
 
           {isLoading && (
-            <div className="flex items-start gap-3">
+            <div className="flex items-start gap-3 msg-in-left">
               <div className="w-8 h-8 rounded-full bg-brand-light-green flex items-center justify-center text-brand-dark-green font-bold text-lg">S</div>
               <div className="max-w-[80%] rounded-3xl px-4 py-2 bg-white text-brand-dark-green rounded-bl-none border border-brand-light-green/10">
                 <div className="flex items-center space-x-1">
@@ -143,7 +152,7 @@ const ChatbotModal: React.FC<ChatbotModalProps> = ({ isOpen, onClose }) => {
         </div>
 
         <footer className="p-4 border-t border-brand-light-green/50">
-          <div className="flex items-center bg-white rounded-full p-1 border border-brand-light-green/20 shadow-sm focus-within:ring-2 focus-within:ring-brand-dark-green/10">
+          <div className="flex items-center bg-white rounded-full p-1 border border-brand-light-green/20 shadow-sm focus-within:ring-2 focus-within:ring-brand-dark-green/10 transition-shadow duration-200">
             <input
               type="text"
               value={userInput}
@@ -158,7 +167,7 @@ const ChatbotModal: React.FC<ChatbotModalProps> = ({ isOpen, onClose }) => {
               onClick={handleSendMessage}
               disabled={isLoading || !userInput.trim()}
               aria-label="Send message"
-              className="bg-brand-dark-green rounded-full p-2 text-white hover:bg-brand-light-green hover:text-brand-dark-green disabled:bg-gray-300 disabled:cursor-not-allowed transition-all active:scale-95"
+              className="bg-brand-dark-green rounded-full p-2 text-white hover:bg-brand-light-green hover:text-brand-dark-green disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-300 active:scale-95 hover:scale-105"
             >
               <SendIcon className="w-5 h-5" />
             </button>

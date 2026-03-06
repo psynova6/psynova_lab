@@ -12,9 +12,9 @@ const DailyAffirmation: React.FC<DailyAffirmationProps> = ({ affirmation }) => {
 
   return (
     <section className="container mx-auto px-4 sm:px-6 lg:px-8 -mt-8 mb-16">
-      <div className="bg-white/60 rounded-[2rem] shadow-lg p-6 flex items-center gap-4 sm:gap-6 animate-fade-in-down">
+      <div className="shimmer-card bg-white/60 rounded-[2rem] shadow-lg p-6 flex items-center gap-4 sm:gap-6 animate-fade-in-down">
         <div className="flex-shrink-0 bg-yellow-200/50 p-3 rounded-full">
-          <SparkleIcon className="w-6 h-6 text-yellow-600" />
+          <SparkleIcon className="w-6 h-6 text-yellow-600 animate-spin-slow" />
         </div>
         <div>
           <h3 className="font-semibold text-brand-dark-green mb-1">Your Daily Affirmation</h3>
