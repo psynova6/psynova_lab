@@ -102,11 +102,12 @@ function StudentDashboard({ userProfile, onLogout, onProfileUpdate }: StudentDas
     setSelectedPlan(planName);
   }, [setSelectedPlan]);
 
-  const handleBookSession = useCallback((therapistName: string) => {
+  const handleBookSession = useCallback((therapistName: string, scheduledTime?: string) => {
     const newSession: Session = {
       therapistName,
       date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-      status: 'Completed',
+      scheduledTime,
+      status: scheduledTime ? 'scheduled' : 'Completed',
     };
     setSessionHistory(prev => [newSession, ...prev]);
     addNotification({
@@ -115,6 +116,14 @@ function StudentDashboard({ userProfile, onLogout, onProfileUpdate }: StudentDas
       description: `Your session with ${therapistName} is confirmed.`,
     });
   }, [setSessionHistory, addNotification]);
+
+  const handleConnectionNotification = useCallback((message: string) => {
+    addNotification({
+      icon: 'CheckIcon',
+      title: "Connection Successful",
+      description: message,
+    });
+  }, [addNotification]);
 
 
   const handleAssessmentComplete = useCallback(() => {
@@ -252,9 +261,6 @@ function StudentDashboard({ userProfile, onLogout, onProfileUpdate }: StudentDas
     }).sort((a, b) => b.id - a.id); // Ensure latest notifications are first
   }, [notifications]);
 
-  // Derived state to check for premium plan
-  const hasPremiumPlan = selectedPlan === 'Premium';
-
   const lastCheckinValue = lastCheckinCompleted || 'initial';
   const isCurrentPeriodDismissed = dismissedCheckinPeriod === lastCheckinValue;
 
@@ -305,9 +311,9 @@ function StudentDashboard({ userProfile, onLogout, onProfileUpdate }: StudentDas
               <FeatureCard
                 icon={<TherapistIcon className="w-8 h-8 text-brand-dark-green" />}
                 title="Connect with Therapists"
-                description="Ready for the next step? Upgrade to connect with professional therapists for personalized guidance."
-                actionText={hasPremiumPlan ? 'CONNECT' : 'View Plans'}
-                onClick={hasPremiumPlan ? () => setIsTherapistModalOpen(true) : () => setIsSubscriptionOpen(true)}
+                description="Connect with professional therapists for personalized guidance and support."
+                actionText="Connect"
+                onClick={() => setIsTherapistModalOpen(true)}
               />
             </div>
             <div className="animate-fade-up [animation-delay:400ms]">
@@ -347,6 +353,7 @@ function StudentDashboard({ userProfile, onLogout, onProfileUpdate }: StudentDas
           isOpen={isTherapistModalOpen}
           onClose={() => setIsTherapistModalOpen(false)}
           onBookSession={handleBookSession}
+          onConnectionNotification={handleConnectionNotification}
         />}
         {isProfileSettingsOpen && <ProfileSettingsModal
           isOpen={isProfileSettingsOpen}

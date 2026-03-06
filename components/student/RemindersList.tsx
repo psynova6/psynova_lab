@@ -33,41 +33,49 @@ const RemindersList: React.FC<RemindersListProps> = ({ reminders, onDelete }) =>
     };
 
     return (
-        <section className="py-6 sm:py-10 md:py-12">
-            <div className="text-center mb-4 sm:mb-6 md:mb-8">
-                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-brand-dark-green">Upcoming Reminders</h2>
-                <p className="text-sm sm:text-base md:text-lg text-brand-dark-green/80 mt-1 sm:mt-2 max-w-2xl mx-auto">
-                    Stay on top of your tasks and well-being goals.
-                </p>
-            </div>
-            <div className="max-w-2xl mx-auto">
-                <div className="bg-white/60 rounded-2xl sm:rounded-[2rem] shadow-lg p-4 sm:p-6 w-full">
-                    {upcomingReminders.length > 0 ? (
-                        <ul className="space-y-2 sm:space-y-3">
-                            {upcomingReminders.map((reminder) => (
-                                <li key={reminder.id} className="flex items-center justify-between p-2 sm:p-3 rounded-xl sm:rounded-2xl hover:bg-brand-light-green/20 transition-colors duration-200">
-                                    <div className="flex items-center flex-1 min-w-0">
-                                        <AlarmClockIcon className="w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3 text-brand-dark-green/70 flex-shrink-0" />
-                                        <div className="min-w-0 flex-1">
-                                            <p className="font-semibold text-brand-dark-green text-sm sm:text-base truncate">{reminder.task}</p>
-                                            <p className="text-xs sm:text-sm text-brand-dark-green/70 truncate">Due: {formatDate(reminder.dueDate)}</p>
-                                        </div>
-                                    </div>
-                                    <button
-                                        onClick={() => handleDelete(reminder.id, reminder.task)}
-                                        aria-label={`Delete reminder for: ${reminder.task}`}
-                                        className="text-xs sm:text-sm text-red-600 font-semibold py-1 px-2 sm:px-3 rounded-full hover:bg-red-100 transition-colors flex-shrink-0 ml-2">
-                                        Delete
-                                    </button>
-                                </li>
-                            ))}
-                        </ul>
-                    ) : (
-                        <p className="text-center text-brand-dark-green/70 py-4 text-sm sm:text-base">You have no upcoming reminders set.</p>
-                    )}
+        <div className="h-full bg-white/90 rounded-3xl shadow-premium p-6 sm:p-8 animate-fade-in-down flex flex-col border border-brand-light-green/20">
+            <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-brand-light-green/20 flex items-center justify-center">
+                        <AlarmClockIcon className="w-6 h-6 text-brand-dark-green" />
+                    </div>
+                    <div>
+                        <h2 className="text-xl sm:text-2xl font-bold text-brand-dark-green tracking-tight">Daily Tasks</h2>
+                        <p className="text-sm text-brand-dark-green/70">{upcomingReminders.length} pending tasks</p>
+                    </div>
                 </div>
             </div>
-        </section>
+
+            <div className="flex-1 overflow-y-auto pr-2 -mr-2 space-y-3">
+                {upcomingReminders.length > 0 ? (
+                    upcomingReminders.map((reminder) => (
+                        <div key={reminder.id} className="group flex items-start justify-between p-4 rounded-2xl bg-brand-background/30 hover:bg-brand-light-green/10 transition-colors duration-200 border border-transparent hover:border-brand-light-green/30">
+                            <div className="flex items-start gap-4 flex-1 min-w-0">
+                                <button
+                                    onClick={() => handleDelete(reminder.id, reminder.task)}
+                                    className="mt-0.5 w-6 h-6 rounded-full border-2 border-brand-light-green flex items-center justify-center flex-shrink-0 hover:bg-brand-light-green hover:border-brand-dark-green transition-all group/btn"
+                                    title="Mark as complete"
+                                >
+                                    <svg className="w-3.5 h-3.5 text-white opacity-0 group-hover/btn:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                </button>
+                                <div className="min-w-0 flex-1">
+                                    <p className="font-semibold text-brand-dark-green text-sm sm:text-base leading-tight">{reminder.task}</p>
+                                    <p className="text-xs font-medium text-brand-dark-green/60 mt-1">Due: {formatDate(reminder.dueDate)}</p>
+                                </div>
+                            </div>
+                        </div>
+                    ))
+                ) : (
+                    <div className="h-full flex flex-col items-center justify-center text-center py-8">
+                        <div className="w-16 h-16 rounded-full bg-brand-light-green/10 flex items-center justify-center mb-4">
+                            <svg className="w-8 h-8 text-brand-dark-green/30" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 13l4 4L19 7" /></svg>
+                        </div>
+                        <p className="font-bold text-brand-dark-green/80 text-lg">All caught up!</p>
+                        <p className="text-sm font-medium text-brand-dark-green/50 mt-1">No tasks for today.</p>
+                    </div>
+                )}
+            </div>
+        </div>
     );
 };
 

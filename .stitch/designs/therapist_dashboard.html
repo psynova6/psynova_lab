@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Psynova Therapist Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#7aae92",
+                        "primary-dark": "#5e8c73",
+                        "background-light": "#f6f7f7",
+                        "background-dark": "#0a110d",
+                        "surface": "rgba(255, 255, 255, 0.05)",
+                        "surface-border": "rgba(255, 255, 255, 0.1)",
+                        "text-main": "#F5F0E8",
+                        "text-muted": "#a5b6ad",
+                        "danger": "#e57373",
+                        "danger-bg": "rgba(229, 115, 115, 0.1)"
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "serif": ["Playfair Display", "serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    backgroundImage: {
+                        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+        .bg-gradient-page {
+            background: radial-gradient(circle at top right, #1a2e22 0%, #0a110d 50%, #050806 100%);
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-text-main min-h-screen bg-gradient-page">
+<div class="relative flex min-h-screen w-full flex-col group/design-root overflow-x-hidden">
+<!-- Header -->
+<header class="sticky top-0 z-50 flex items-center justify-between border-b border-surface-border glass-card px-10 py-4 mx-8 mt-4 rounded-full">
+<div class="flex items-center gap-3 text-text-main">
+<span class="material-symbols-outlined text-primary text-3xl">psychology</span>
+<h2 class="text-xl font-bold tracking-tight">Psynova</h2>
+</div>
+<div class="flex items-center gap-6">
+<button class="relative flex items-center justify-center rounded-full size-10 bg-surface hover:bg-white/10 transition-colors border border-surface-border">
+<span class="material-symbols-outlined text-text-main">notifications</span>
+<span class="absolute top-2 right-2 size-2 bg-primary rounded-full border border-background-dark"></span>
+</button>
+<div class="flex items-center gap-3 pl-4 border-l border-surface-border">
+<div class="text-right hidden md:block">
+<p class="text-sm font-semibold text-text-main">Dr. Ananya Sharma</p>
+<p class="text-xs text-text-muted">Lead Therapist</p>
+</div>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border border-primary/30" data-alt="Profile picture of Dr. Ananya Sharma" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuD6k-HPkeVVHgXV5w48jzlL8g7oZEdeC_SHsGvcDka2qIAAL00MEqn7htoUKfhHFNR2IEqxhiCS3ikiujQAdONE5A-9Tq2yy3nUJrCHn2DCHMKyytY_mvCGO5Mq8XiQuQi6t2GaCwwWqhqdKOEfepR3vs1r45MHZLpr6_4eIAA1TFnk-BYhR_KVq4PcsZLTMx45HQfS5kaAluIDdMF4N4zxCFFlJ3vtWgVY3i9K20WhkDQf2KstOHqjOF2SUgqGkFeS6US9_P8mBMs");'></div>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-1 w-full max-w-[1440px] mx-auto px-8 py-10 flex flex-col gap-10">
+<!-- Hero Section -->
+<section class="flex flex-col gap-6">
+<h1 class="font-serif text-5xl md:text-6xl font-semibold text-text-main tracking-tight">Good morning, Dr. Sharma</h1>
+<div class="flex flex-wrap gap-4">
+<div class="flex h-10 items-center gap-2 rounded-full glass-card px-5 border-l-2 border-l-primary">
+<span class="material-symbols-outlined text-primary text-sm">group</span>
+<p class="text-sm font-medium">42 Active Students</p>
+</div>
+<div class="flex h-10 items-center gap-2 rounded-full glass-card px-5 border-l-2 border-l-[#f0b429]">
+<span class="material-symbols-outlined text-[#f0b429] text-sm">pending_actions</span>
+<p class="text-sm font-medium">2 Pending</p>
+</div>
+<div class="flex h-10 items-center gap-2 rounded-full glass-card px-5 border-l-2 border-l-[#e57373]">
+<span class="material-symbols-outlined text-[#e57373] text-sm">event</span>
+<p class="text-sm font-medium">3 Today</p>
+</div>
+</div>
+</section>
+<!-- Dashboard Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<!-- Student Connections (2 Cols) -->
+<div class="lg:col-span-2 glass-card rounded-xl p-6 flex flex-col gap-6">
+<div class="flex items-center justify-between border-b border-surface-border pb-4">
+<h3 class="text-lg font-semibold flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">diversity_3</span>
+                            Student Connections
+                        </h3>
+<div class="flex bg-surface rounded-full p-1 border border-surface-border">
+<button class="px-4 py-1.5 rounded-full bg-primary text-background-dark text-sm font-semibold shadow-sm">
+                                Requests (2)
+                            </button>
+<button class="px-4 py-1.5 rounded-full text-text-muted hover:text-text-main text-sm font-medium transition-colors">
+                                Connected (42)
+                            </button>
+</div>
+</div>
+<div class="flex flex-col gap-4">
+<!-- Request Item 1 -->
+<div class="flex items-center justify-between bg-surface/50 border border-surface-border rounded-xl p-4 hover:bg-surface transition-colors">
+<div class="flex items-center gap-4">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-12 w-12 border border-surface-border" data-alt="Avatar of student Rahul" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB9i0XH-UozId5by2SjJVHUU7WhoREtlPZHOkAiS6wxdURjyg25SS4OnobxKe2yN-QkLRYJnlGXFgYLcO74lwWMjAE6fxmldWSUYYuWYyAastzm_9XIrTYnbFVn9WSkp6g4Y9JlwOeHn4pLJ-YBI_eRlMo2kYjjoGqy2KX3vOQuKvddtRXedXDBEzFyWVYemnt10mfvytJs-0dmaA6bMNVKEteEVwvaLvGbtcJnG4Tp5cmfQBGtxz_4qvdWQKiIlglKrlEN0g9R11I");'></div>
+<div>
+<p class="text-base font-semibold text-text-main">Rahul Verma</p>
+<p class="text-sm text-text-muted flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">schedule</span>
+                                        Requested: Mon, 10:00 AM • Comp Sci
+                                    </p>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="flex items-center justify-center rounded-full h-9 px-5 bg-primary hover:bg-primary-dark text-background-dark text-sm font-bold transition-colors">
+                                    Accept
+                                </button>
+<button class="flex items-center justify-center rounded-full h-9 px-5 bg-surface hover:bg-danger-bg text-text-main hover:text-danger text-sm font-medium border border-surface-border transition-colors">
+                                    Decline
+                                </button>
+</div>
+</div>
+<!-- Request Item 2 -->
+<div class="flex items-center justify-between bg-surface/50 border border-surface-border rounded-xl p-4 hover:bg-surface transition-colors">
+<div class="flex items-center gap-4">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-12 w-12 border border-surface-border" data-alt="Avatar of student Priya" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDMrnwwqX0jW7XP5uXOZunOMRzKlHWz4n3NdNkk3WPaD_-uu6j1YcLq57TQxU8EJcRSECPHrLzt7d5uVzj8tUTer52KJq5N9GBNU55lziEaTNGi7SIBXmwcARRJviqgFmBTlxl9aalEfWg70lteE-C9wQD4xIqXCBQbNMfMig3FyrnGDrPduKMgiYgiDxpV2iM3KW_UeQTgEt2yqcbwpSHTk3jAIqWiBgiSwRbml6fnoVzPqOwF1Pc_EZtvYxyuPwLxH7vDZI_ijzM");'></div>
+<div>
+<p class="text-base font-semibold text-text-main">Priya Patel</p>
+<p class="text-sm text-text-muted flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">schedule</span>
+                                        Requested: Tue, 2:30 PM • Liberal Arts
+                                    </p>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="flex items-center justify-center rounded-full h-9 px-5 bg-primary hover:bg-primary-dark text-background-dark text-sm font-bold transition-colors">
+                                    Accept
+                                </button>
+<button class="flex items-center justify-center rounded-full h-9 px-5 bg-surface hover:bg-danger-bg text-text-main hover:text-danger text-sm font-medium border border-surface-border transition-colors">
+                                    Decline
+                                </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Department Overview (1 Col) -->
+<div class="glass-card rounded-xl p-6 flex flex-col gap-6">
+<div class="border-b border-surface-border pb-4">
+<h3 class="text-lg font-semibold flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">pie_chart</span>
+                            Wellness by Dept
+                        </h3>
+</div>
+<div class="flex flex-col gap-5 flex-1 justify-center">
+<div>
+<div class="flex justify-between mb-2">
+<span class="text-sm font-medium text-text-main">Computer Science</span>
+<span class="text-xs text-text-muted">24 Students</span>
+</div>
+<div class="w-full bg-surface rounded-full h-2">
+<div class="bg-gradient-to-r from-primary via-[#f0b429] to-danger h-2 rounded-full" style="width: 75%"></div>
+</div>
+<div class="flex justify-between mt-1 text-[10px] text-text-muted uppercase tracking-wider">
+<span>Good</span>
+<span>Needs Attention</span>
+</div>
+</div>
+<div>
+<div class="flex justify-between mb-2">
+<span class="text-sm font-medium text-text-main">Liberal Arts</span>
+<span class="text-xs text-text-muted">18 Students</span>
+</div>
+<div class="w-full bg-surface rounded-full h-2">
+<div class="bg-gradient-to-r from-primary to-[#f0b429] h-2 rounded-full" style="width: 45%"></div>
+</div>
+<div class="flex justify-between mt-1 text-[10px] text-text-muted uppercase tracking-wider">
+<span>Good</span>
+<span>Needs Attention</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Second Row -->
+<!-- Your Team -->
+<div class="glass-card rounded-xl p-6">
+<div class="border-b border-surface-border pb-4 mb-4 flex justify-between items-center">
+<h3 class="text-lg font-semibold flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">medical_services</span>
+                            Care Team
+                        </h3>
+<span class="material-symbols-outlined text-text-muted cursor-pointer hover:text-text-main">more_horiz</span>
+</div>
+<div class="flex flex-col gap-3">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-surface border border-surface-border bg-cover" data-alt="Avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDaSdzyEvkzW5_92Zr5shp8PsThnxCrei1QTj3f_vQ0U-6n-2dDfzvLoLTGE2TH1czF9uovSnPzj4qtGlDraF-Auc4Jc8YQOs7Z1oex4-ZYSsBORhyImbjZItYNQjWaeCDfkfaUiO47_7j8ZC-98wrDOYXciJ9KaOHTuOzqkCS3qwOlHnkwOTbHS9F63tX8np34-jjK80gvLyZ450ygRikcG4WD-HoPUgAkd7AHrErOWJVD19fkyQ9XlMbBNBsSQPHiFve4W3I_3dY");'></div>
+<div>
+<p class="text-sm font-semibold">Dr. Sarah Lee</p>
+<p class="text-xs text-text-muted">Clinical Psychologist</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-surface border border-surface-border bg-cover" data-alt="Avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuC2ybK43dnXRoxnLk6q4OGBdI3F_iXEgij7pmKsfEg_wx1BrxeGwWF28nAJ78Kb4XMUgNwGG0D2cp0Jux414-71rzapInBSoWgJIkqZbsO9EZwJAOiMEqXFBuzD4P57kdVEXgTFlK4PENvdQ3wjSIMO-dmDqeuit7xcO5g81pqU9NvlUgWl3-Lo4qIAPtWh5zG8RF4UqprlbonPJ6FZovXCQukQ9Yb2tsBMbpGoYkagU2iI685Pv4Z14nh8ynWpsyk-48-3d-OruzI");'></div>
+<div>
+<p class="text-sm font-semibold">James O'Connor</p>
+<p class="text-xs text-text-muted">Crisis Counselor</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Upcoming Sessions -->
+<div class="glass-card rounded-xl p-6">
+<div class="border-b border-surface-border pb-4 mb-4">
+<h3 class="text-lg font-semibold flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">calendar_today</span>
+                            Today's Sessions
+                        </h3>
+</div>
+<div class="flex flex-col gap-4 relative">
+<div class="absolute left-[7px] top-2 bottom-2 w-px bg-surface-border"></div>
+<div class="flex gap-4 relative z-10">
+<div class="mt-1 size-4 rounded-full bg-primary ring-4 ring-background-dark shrink-0"></div>
+<div class="bg-surface/50 border border-surface-border rounded-lg p-3 flex-1">
+<p class="text-xs text-primary font-medium mb-1">09:00 AM - 09:45 AM</p>
+<p class="text-sm font-semibold">Maya S. (Follow-up)</p>
+</div>
+</div>
+<div class="flex gap-4 relative z-10">
+<div class="mt-1 size-4 rounded-full bg-[#f0b429] ring-4 ring-background-dark shrink-0"></div>
+<div class="bg-surface/50 border border-surface-border rounded-lg p-3 flex-1 opacity-70">
+<p class="text-xs text-text-muted font-medium mb-1">11:30 AM - 12:15 PM</p>
+<p class="text-sm font-semibold">Arjun K. (Intake)</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Reminders -->
+<div class="glass-card rounded-xl p-6">
+<div class="border-b border-surface-border pb-4 mb-4">
+<h3 class="text-lg font-semibold flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">task_alt</span>
+                            Quick Tasks
+                        </h3>
+</div>
+<div class="flex flex-col gap-3">
+<label class="flex items-start gap-3 cursor-pointer group">
+<input class="mt-1 rounded bg-surface border-surface-border text-primary focus:ring-primary focus:ring-offset-background-dark" type="checkbox"/>
+<span class="text-sm text-text-muted group-hover:text-text-main transition-colors">Review notes for Rahul's initial assessment</span>
+</label>
+<label class="flex items-start gap-3 cursor-pointer group">
+<input checked="" class="mt-1 rounded bg-surface border-surface-border text-primary focus:ring-primary focus:ring-offset-background-dark" type="checkbox"/>
+<span class="text-sm text-text-muted line-through opacity-50">Approve department wellness survey</span>
+</label>
+<label class="flex items-start gap-3 cursor-pointer group">
+<input class="mt-1 rounded bg-surface border-surface-border text-primary focus:ring-primary focus:ring-offset-background-dark" type="checkbox"/>
+<span class="text-sm text-text-muted group-hover:text-text-main transition-colors">Update availability for next week</span>
+</label>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>
