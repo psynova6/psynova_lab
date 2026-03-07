@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "android:sync": "npx -y cap sync android",
     "android:open": "npx -y cap open android",
-    "android:build": "npm run build && npx -y cap sync android"
+    "android:build": "npm run build && npx -y cap sync android",
+    "clean": "powershell -Command \"Remove-Item -Recurse -Force node_modules, package-lock.json; npm install\""
   },
   "dependencies": {
     "@capacitor/core": "^7.0.0",
