@@ -14,3 +14,10 @@ build/
 *.local
 .env
 .env.*
+
+# Agentic Tooling
+.agent/
+.agents/
+.stitch/
+.stitch-ui/
+.gemini/
