@@ -1,341 +1,690 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { usePersistentState } from '../../hooks/usePersistentState';
 import { motion, AnimatePresence } from 'framer-motion';
+import Logo from '../layout/Logo';
 
 // Icons
-const SaveIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
-    </svg>
-);
-const LeftArrow = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-    </svg>
-);
-const RightArrow = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-    </svg>
+const BookIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-16 h-16 sm:w-24 sm:h-24 opacity-20">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+  </svg>
 );
 
+const EditIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+    <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+  </svg>
+);
+
+const TrashIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-red-400">
+    <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+  </svg>
+);
+
+// Max lines per page before user can flip to a new page
+const LINES_PER_PAGE = 20;
+const LINE_HEIGHT_PX = 36;
+const MAX_TEXT_HEIGHT_PX = LINES_PER_PAGE * LINE_HEIGHT_PX; // 720px
+
 interface JournalEntry {
-    id: string;
-    text: string;
-    timestamp: string;
+  id: string;
+  title: string;
+  text: string;
+  timestamp: string;
+  // continuation pages share the same logical 'day'. parentId links them.
+  parentId?: string;
 }
 
 const notebookCSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Caveat:wght@400..700&display=swap');
 
-  .notebook-wrapper {
-    background: radial-gradient(circle at center, #2b3940 0%, #1a2226 100%);
-    box-shadow: inset 0 0 100px rgba(0,0,0,0.5);
-  }
-
-  .notebook-book-cover {
-    background: #d4c2b0;
-    border-radius: 4px 20px 20px 4px;
-    padding: 3px 6px 3px 18px;
-    box-shadow: 
-      15px 20px 30px rgba(0,0,0,0.4),
-      inset -2px 0 5px rgba(0,0,0,0.1),
-      inset 4px 0 10px rgba(255,255,255,0.4);
-    position: relative;
-  }
-  
-  .notebook-book-cover::before {
-    content: '';
+  /* Global Wrapper: Vignette Background */
+  .notebook-fullscreen {
     position: absolute;
-    top: 0; bottom: 0; left: 16px; width: 4px;
-    background: rgba(0,0,0,0.05); /* Subtle crease for the binding */
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, #ffffff 40%, #c4d6ee 100%);
+    box-shadow: inset 0 0 150px rgba(118, 153, 206, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
   }
 
-  .notebook-container {
-    perspective: 2500px;
+  /* Two-Page Spread Layout */
+  .spread-container {
+    display: flex;
+    width: 90%;
+    max-width: 1200px;
+    height: 85vh;
+    box-shadow: 
+      0 20px 50px rgba(0,0,0,0.15),
+      0 5px 15px rgba(0,0,0,0.05);
+    background: #f4f4ece6; /* Base paper color */
+    border-radius: 8px;
+    perspective: 2000px; /* Enhanced 3D perspective for flips */
     position: relative;
-    width: 100%;
+  }
+
+  /* Left & Right Pages */
+  .page-side {
+    flex: 1;
+    position: relative;
+    background-color: #f2f2eb;
     height: 100%;
   }
 
-  .notebook-paper {
-    background-color: #fcfbfa; /* Extremely clean, warm off-white */
-    border-radius: 0 16px 16px 0;
-    box-shadow: 
-      inset 12px 0 20px rgba(0,0,0,0.04), /* Binding shadow */
-      inset -1px 0 3px rgba(0,0,0,0.02); /* Right edge hint */
-    transform-origin: left center;
-    border-right: 1px solid rgba(0,0,0,0.05);
-    overflow-y: auto;
-    overflow-x: hidden;
-  }
-  
-  .notebook-content {
-    min-height: 100%;
-    width: 100%;
-    background-image: 
-      linear-gradient(90deg, transparent 68px, rgba(239, 68, 68, 0.4) 68px, rgba(239, 68, 68, 0.4) 70px, transparent 70px), /* Red Margin */
-      linear-gradient(rgba(148, 163, 184, 0.35) 1px, transparent 1px); /* Blue horizontal lines */
-    background-size: auto, 100% 40px;
-    background-position: 0 0, 0 40px;
-    background-repeat: repeat;
-    position: relative;
-    padding-left: 88px; 
-    padding-top: 40px; 
-    padding-right: 28px;
-    padding-bottom: 40px;
+  .left-page {
+    border-radius: 8px 0 0 8px;
+    box-shadow: inset -20px 0 30px rgba(0,0,0,0.03);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    z-index: 10;
+    gap: 1.5rem;
   }
 
-  .notebook-text-layer {
-    line-height: 40px; /* Must perfectly match the background line height (40px) */
-    font-size: 28px;
-    font-family: 'Caveat', cursive;
-    color: #1e293b;
-    width: 100%;
-    background: transparent;
-    border: none;
-    resize: none;
-    outline: none;
-    overflow: hidden; /* No internal scrollbar! */
-    transform: translateY(-9px); /* Magic number to align 'Caveat' baseline to the ruled line */
-    letter-spacing: 0.5px;
-    white-space: pre-wrap;
-    word-break: break-word;
-    display: block;
+  .cover-logo {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    opacity: 0.35;
+    filter: grayscale(0.4);
   }
   
-  /* Photorealistic Binding Rings */
-  .binder-rings {
+  .right-page-container {
+    flex: 1;
+    position: relative;
+    perspective: 2000px;
+  }
+
+  .right-page {
     position: absolute;
-    top: 5%;
-    bottom: 5%;
-    left: 2px;
+    inset: 0;
+    border-radius: 0 8px 8px 0;
+    box-shadow: inset 20px 0 30px rgba(0,0,0,0.02);
+    display: flex;
+    flex-direction: column;
+    padding: 2.5rem 3rem 1.5rem 4rem;
+    background-color: #f2f2eb;
+    transform-origin: left center;
+    backface-visibility: hidden;
+    /* Critical: clip content to the page bounds */
+    overflow: hidden;
+  }
+
+  /* Mirrored Decorative Content */
+  .mirrored-container {
+    transform: scaleX(-1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #a39e93;
+    font-family: 'Playfair Display', serif;
+    opacity: 0.6;
+    text-align: center;
+  }
+
+  .journal-bg-text {
+    font-size: 5rem;
+    font-weight: 700;
+    letter-spacing: -2px;
+    margin-top: 1rem;
+    color: #d8d3c7;
+    text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+  }
+
+  .quote-text {
+    font-size: 1.1rem;
+    font-style: italic;
+    max-width: 280px;
+    margin-top: 1.5rem;
+    line-height: 1.6;
+    color: #b5b0a3;
+  }
+
+  .open-book-btn {
+    margin-top: 4rem;
+    transform: scaleX(-1); /* Un-mirror the button relative to container */
+    background: #e6e3d8;
+    color: #2b4522;
+    padding: 10px 30px;
+    border-radius: 30px;
+    font-family: 'Lora', serif;
+    font-size: 1.1rem;
+    font-weight: 500;
+    box-shadow: 
+      inset 2px 2px 5px rgba(255,255,255,0.8),
+      inset -2px -2px 5px rgba(0,0,0,0.05),
+      2px 4px 10px rgba(0,0,0,0.05);
+    transition: all 0.2s ease;
+  }
+  
+  .open-book-btn:hover {
+    background: #dfdbce;
+    box-shadow: 
+      inset 2px 2px 5px rgba(255,255,255,0.8),
+      inset -2px -2px 5px rgba(0,0,0,0.05),
+      1px 2px 5px rgba(0,0,0,0.05);
+  }
+
+  /* The Spine and Binder Rings */
+  .spine-container {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    z-index: 50;
     display: flex;
     flex-direction: column;
     justify-content: space-evenly;
-    z-index: 50;
+    align-items: center;
+    padding: 2% 0;
     pointer-events: none;
   }
-  .binder-ring-hole {
-    position: relative;
-    width: 16px;
-    height: 16px;
-    background: #e4ddd1; /* Color of the cover peeking through */
-    border-radius: 50%;
-    box-shadow: 
-      inset 3px 3px 6px rgba(0,0,0,0.6), 
-      inset -1px -1px 2px rgba(255,255,255,0.8),
-      0 1px 1px rgba(255,255,255,0.8);
-    margin-bottom: 2px;
-  }
-  .binder-metal-coil {
+  
+  /* Central shadow line for depth */
+  .spine-container::before {
+    content: '';
     position: absolute;
-    left: -14px;
-    top: 50%;
-    width: 28px;
-    height: 10px;
-    background: linear-gradient(to bottom, #ffffff 0%, #cbd5e1 30%, #64748b 60%, #e2e8f0 100%);
-    border-radius: 6px;
-    transform: translateY(-50%) rotate(-12deg);
-    box-shadow: 
-      2px 2px 4px rgba(0,0,0,0.4), 
-      inset 0 2px 2px rgba(255,255,255,0.8),
-      inset 0 -1px 2px rgba(0,0,0,0.2);
-    z-index: 50;
+    top: 0; bottom: 0; left: 50%;
+    width: 2px;
+    background: rgba(0,0,0,0.05);
+    transform: translateX(-50%);
   }
 
-  /* Sticky Note Styling */
-  .sticky-note {
-    background: #fef08a;
-    box-shadow: 2px 4px 10px rgba(0,0,0,0.1), inset 0 20px 20px rgba(255,255,255,0.4);
-    transform: rotate(2deg);
+  .binder-coil {
+    width: 46px;
+    height: 12px;
+    background: linear-gradient(180deg, 
+      #dcdcdc 0%, 
+      #ffffff 30%, 
+      #a6a6a6 50%, 
+      #8c8c8c 60%, 
+      #e2e2e2 100%
+    );
+    border-radius: 8px;
+    box-shadow: 
+      2px 4px 6px rgba(0,0,0,0.25),
+      inset 0 2px 4px rgba(255,255,255,0.9),
+      inset 0 -1px 2px rgba(0,0,0,0.4);
+    position: relative;
+    /* Simulate perspective winding */
+    transform: rotateX(15deg) rotateZ(-3deg);
+  }
+
+  /* Holes punched in paper behind coils */
+  .binder-coil::before, .binder-coil::after {
+    content: '';
+    position: absolute;
+    width: 12px;
+    height: 14px;
+    background: #e8e6df; /* slightly darker than paper */
+    border-radius: 50%;
+    top: 50%;
+    transform: translateY(-50%);
+    box-shadow: inset 2px 2px 5px rgba(0,0,0,0.3);
+    z-index: -1;
+  }
+  
+  .binder-coil::before { left: -8px; }
+  .binder-coil::after { right: -8px; }
+
+
+  /* Right Page Functional Typography & Layout */
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid rgba(0,0,0,0.06);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    padding: 0.75rem 0;
+    margin-bottom: 2rem;
+    font-family: 'Lora', serif;
+  }
+
+  .date-group {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    color: #2b4522; /* Dark green theme */
+  }
+
+  .date-num {
+    font-size: 2.2rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .date-text {
+    font-size: 0.9rem;
+    font-weight: 500;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    opacity: 0.8;
+  }
+
+  .time-text {
+    font-size: 0.85rem;
+    color: #83857e;
+    font-family: monospace;
+    letter-spacing: 0.5px;
+  }
+
+  .title-input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
     font-family: 'Caveat', cursive;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #2b4522;
+    margin-bottom: 0.5rem;
+  }
+  
+  .title-input::placeholder {
+    color: rgba(43, 69, 34, 0.3);
+    font-family: 'Playfair Display', serif;
+    font-weight: 500;
+    font-size: 2rem;
+  }
+
+  /* Content Wrapper: fills the available flex space, clips overflow */
+  .content-scroll-wrapper {
+    flex: 1;
+    min-height: 0; /* Critical for flex children - allows shrinking */
+    width: 100%;
+    overflow: hidden; /* Clip text that overflows the 20-line boundary */
+    position: relative;
+    /* Background ruled lines */
+    background-image: linear-gradient(rgba(0,0,0,0.07) 1px, transparent 1px);
+    background-size: 100% 36px;
+  }
+
+  .content-textarea {
+    /* Fill the wrapper completely */
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    resize: none;
+    /* Allow typing and backspace freely, clip visually at wrapper boundary */
+    overflow: hidden;
+    
+    font-family: 'Caveat', cursive;
+    font-size: 1.6rem;
+    font-weight: 500;
+    color: #21321b;
+    line-height: 36px;
+    padding-top: 6px;
+  }
+  
+  .content-textarea::placeholder {
+    color: rgba(0,0,0,0.2);
+    font-family: 'Lora', serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 1.15rem;
+  }
+
+  .page-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(0,0,0,0.03);
+    color: #a39e93;
+    font-family: monospace;
+    font-size: 0.85rem;
+  }
+
+  .nav-arrows {
+    display: flex;
+    gap: 1.5rem;
+  }
+
+  .footer-btn {
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+  
+  .footer-btn:hover {
+    color: #2b4522;
   }
 
   /* Hidden Scrollbars */
-  .hide-scroll::-webkit-scrollbar { width: 6px; }
-  .hide-scroll::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.1); border-radius: 10px; }
+  .hide-scroll::-webkit-scrollbar { width: 5px; }
+  .hide-scroll::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.08); border-radius: 10px; }
   .hide-scroll::-webkit-scrollbar-track { background: transparent; }
 `;
 
 const JournalingPrompts: React.FC<{ onBack: () => void }> = ({ onBack }) => {
-    const [entries, setEntries] = usePersistentState<JournalEntry[]>('journalEntries', []);
-    const [currentPage, setCurrentPage] = useState(0);
-    const [direction, setDirection] = useState(0);
-    const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [entries, setEntries] = usePersistentState<JournalEntry[]>('journalEntries', []);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [isPageFull, setIsPageFull] = useState(false); // true when 20 lines are filled
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-    // Auto-resize textarea logic
-    const resizeTextarea = () => {
-        if (textareaRef.current) {
-            textareaRef.current.style.height = 'auto';
-            textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
-        }
-    };
+  // Check if text fills 20 lines
+  const checkPageOverflow = (text: string) => {
+    // Create a temporary hidden textarea to measure the real scroll height
+    const ta = textareaRef.current;
+    if (!ta) return false;
+    // scrollHeight vs MAX_TEXT_HEIGHT_PX determines if page is full
+    // We save current value, set new value, measure, restore
+    const oldValue = ta.value;
+    ta.value = text;
+    const full = ta.scrollHeight >= MAX_TEXT_HEIGHT_PX;
+    ta.value = oldValue;
+    return full;
+  };
 
-    // Initialize today's entry on mount
-    useEffect(() => {
-        setEntries(prev => {
-            if (prev.length === 0) {
-                return [{ id: Date.now().toString(), text: '', timestamp: new Date().toISOString() }];
-            }
-            const today = new Date().toLocaleDateString('en-US');
-            const latestEntryDate = new Date(prev[0].timestamp).toLocaleDateString('en-US');
-            if (today !== latestEntryDate) {
-                return [{ id: Date.now().toString(), text: '', timestamp: new Date().toISOString() }, ...prev];
-            }
-            return prev;
-        });
-    }, [setEntries]);
+  // Initialize today's entry on mount
+  useEffect(() => {
+    setEntries(prev => {
+      if (prev.length === 0) {
+        return [{ id: Date.now().toString(), title: '', text: '', timestamp: new Date().toISOString() }];
+      }
+      const today = new Date().toLocaleDateString('en-US');
+      const latestEntryDate = new Date(prev[0].timestamp).toLocaleDateString('en-US');
+      if (today !== latestEntryDate) {
+        return [{ id: Date.now().toString(), title: '', text: '', timestamp: new Date().toISOString() }, ...prev];
+      }
+      return prev;
+    });
+  }, [setEntries]);
 
-    const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        if (currentPage < 0 || currentPage >= entries.length) return;
-        setEntries(prev => {
-            const updated = [...prev];
-            updated[currentPage] = {
-                ...updated[currentPage],
-                text: e.target.value
-            };
-            return updated;
-        });
-        resizeTextarea();
-    };
+  // Update isPageFull whenever the active entry changes
+  useEffect(() => {
+    // Use a microtask so the DOM has updated before measuring
+    setTimeout(() => {
+      const ta = textareaRef.current;
+      if (!ta) return;
+      // scrollHeight / line-height = number of visual lines
+      const visualLines = Math.round(ta.scrollHeight / LINE_HEIGHT_PX);
+      setIsPageFull(visualLines >= LINES_PER_PAGE);
+    }, 0);
+  }, [currentPage, entries]);
 
-    // Re-adjust height if page turns
-    useEffect(() => {
-        resizeTextarea();
-    }, [currentPage, entries]);
+  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    if (currentPage < 0 || currentPage >= entries.length) return;
+    const newText = e.target.value;
+    setEntries(prev => {
+      const updated = [...prev];
+      updated[currentPage] = {
+        ...updated[currentPage],
+        text: newText
+      };
+      return updated;
+    });
+    // Measure visual lines via scrollHeight (handles word-wrap correctly)
+    const ta = e.target;
+    const visualLines = Math.round(ta.scrollHeight / LINE_HEIGHT_PX);
+    setIsPageFull(visualLines >= LINES_PER_PAGE);
+  };
 
-    const goToPage = (newIndex: number) => {
-        if (newIndex < 0 || newIndex >= entries.length) return;
-        setDirection(newIndex > currentPage ? 1 : -1);
-        setCurrentPage(newIndex);
-    };
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (currentPage < 0 || currentPage >= entries.length) return;
+    setEntries(prev => {
+      const updated = [...prev];
+      updated[currentPage] = {
+        ...updated[currentPage],
+        title: e.target.value
+      };
+      return updated;
+    });
+  };
 
-    const formatDate = (iso: string) => {
-        const d = new Date(iso);
-        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    };
-    const formatTime = (iso: string) => {
-        const d = new Date(iso);
-        return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-    };
+  const deleteEntry = () => {
+    if (entries.length === 0) return;
 
-    const pageVariants = {
-        enter: (direction: number) => ({
-            rotateY: direction > 0 ? 110 : -110,
-            opacity: 0,
-            boxShadow: "0px 0px 30px rgba(0,0,0,0.4)"
-        }),
-        center: {
-            zIndex: 1,
-            rotateY: 0,
-            opacity: 1,
-            boxShadow: "inset 12px 0 20px rgba(0,0,0,0.04), inset -1px 0 3px rgba(0,0,0,0.02)"
-        },
-        exit: (direction: number) => ({
-            zIndex: 0,
-            rotateY: direction < 0 ? 110 : -110,
-            opacity: 0,
-            boxShadow: "0px 0px 30px rgba(0,0,0,0.4)"
-        })
-    };
+    let confirmDelete = true;
 
-    return (
-        <>
-            <style>{notebookCSS}</style>
-            <div className="relative w-full h-full min-h-[600px] flex items-center justify-center p-4 sm:p-8 overflow-hidden notebook-wrapper rounded-[2.5rem]">
+    // Only ask for confirmation if the page has significant content (title or >10 chars text)
+    if (activeEntry.title.trim().length > 0 || activeEntry.text.trim().length > 10) {
+      confirmDelete = window.confirm("Are you sure you want to completely erase this page?");
+    }
 
-                {/* Navigation Floating UI */}
-                <div className="absolute top-6 left-6 right-6 flex justify-between z-50 pointer-events-none">
-                    <button
-                        onClick={() => goToPage(currentPage + 1)}
-                        disabled={entries.length === 0 || currentPage >= entries.length - 1}
-                        className="pointer-events-auto bg-white/90 backdrop-blur-sm p-3.5 rounded-full shadow-[0_4px_15px_rgba(0,0,0,0.2)] text-brand-dark-green disabled:opacity-0 disabled:scale-95 transition-all hover:bg-white hover:scale-105 active:scale-95 focus:outline-none"
-                        aria-label="Previous Page (Older Entries)"
-                        title="Older Entries"
-                    >
-                        <LeftArrow />
-                    </button>
+    if (!confirmDelete) return;
 
-                    <button
-                        onClick={() => goToPage(currentPage - 1)}
-                        disabled={entries.length === 0 || currentPage <= 0}
-                        className="pointer-events-auto bg-white/90 backdrop-blur-sm p-3.5 rounded-full shadow-[0_4px_15px_rgba(0,0,0,0.2)] text-brand-dark-green disabled:opacity-0 disabled:scale-95 transition-all hover:bg-white hover:scale-105 active:scale-95 focus:outline-none"
-                        aria-label="Next Page (Newer Entries)"
-                        title="Newer Entries"
-                    >
-                        <RightArrow />
-                    </button>
+    setEntries(prev => {
+      const newEntries = prev.filter((_, i) => i !== currentPage);
+
+      // If we deleted the only entry, create a fresh empty one for today immediately
+      if (newEntries.length === 0) {
+        return [{ id: Date.now().toString(), title: '', text: '', timestamp: new Date().toISOString() }];
+      }
+      return newEntries;
+    });
+
+    // Ensure we navigate to a valid index on delete
+    if (currentPage >= entries.length - 1) {
+      setCurrentPage(Math.max(0, entries.length - 2));
+    }
+  };
+
+  const handleOpenBook = () => {
+    // If the 0th entry (today) is completely empty, just focus it
+    if (entries.length > 0 && entries[0].title === '' && entries[0].text === '') {
+      setCurrentPage(0);
+      setTimeout(() => textareaRef.current?.focus(), 100);
+      return;
+    }
+
+    // Ensure today is the 0th index before wiping it
+    const today = new Date().toLocaleDateString('en-US');
+    const latestEntryDate = entries.length > 0 ? new Date(entries[0].timestamp).toLocaleDateString('en-US') : '';
+
+    if (today !== latestEntryDate) {
+      setEntries(prev => [{ id: Date.now().toString(), title: '', text: '', timestamp: new Date().toISOString() }, ...prev]);
+      setCurrentPage(0);
+    } else {
+      // Ask to start a new page today wiping the current day's text? Or just focus it.
+      setCurrentPage(0);
+      setTimeout(() => textareaRef.current?.focus(), 100);
+    }
+  };
+
+  // Tracks flip direction for animation variants
+  // direction = 1 means we go FORWARD (next page), page sweeps LEFT → flips right side away
+  // direction = -1 means we go BACK (previous), page sweeps RIGHT → flips from left in
+  const [pageDirection, setPageDirection] = useState(1);
+
+  // ── "next" now CREATES a new continuation page (only when 20 lines filled) ──
+  const goToNext = () => {
+    if (!isPageFull) return;
+    setPageDirection(1);
+    // Check if a continuation page already exists right after this one
+    const currentId = entries[currentPage]?.id;
+    const nextEntry = entries[currentPage - 1]; // array is newest-first
+    if (nextEntry && nextEntry.parentId === currentId) {
+      // Already exists — just navigate to it
+      setCurrentPage(currentPage - 1);
+    } else {
+      // Create new blank continuation page inserted BEFORE current (newest-first order)
+      const newEntry: JournalEntry = {
+        id: Date.now().toString(),
+        title: '',
+        text: '',
+        timestamp: new Date().toISOString(),
+        parentId: currentId,
+      };
+      setEntries(prev => {
+        const updated = [...prev];
+        updated.splice(currentPage, 0, newEntry); // insert before current
+        return updated;
+      });
+      // After insert, current page index stays same and it now shows the new blank page
+      // (because we inserted at `currentPage`, shifting current down to currentPage+1)
+      // So we stay at currentPage — but the array shifted, so actually stay at the same idx.
+      // The new entry is at currentPage, old one at currentPage+1. 
+      // We want to navigate TO the new blank page.
+      setCurrentPage(currentPage); // effectively refreshes to the newly inserted entry
+    }
+  };
+
+  const goToPrev = () => {
+    if (currentPage < entries.length - 1) {
+      setPageDirection(-1);
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const activeEntry = entries[currentPage] || { title: '', text: '', timestamp: new Date().toISOString() };
+
+  // Date formatting for the header
+  const entryDate = new Date(activeEntry.timestamp);
+  const dayNum = entryDate.getDate();
+  const monthYear = entryDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  const timeStr = entryDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase();
+
+  // 3D Page flip Variants
+  // Entering from "next" (going forward): new page slides in from the RIGHT side
+  //   initial rotateY = 90 (page starts folded to the right), animates to 0
+  // Entering from "prev" (going back): new page slides in from the LEFT side
+  //   initial rotateY = -90 (page starts folded to the left), animates to 0
+  const pageVariants = {
+    initial: (direction: number) => ({
+      rotateY: direction > 0 ? 90 : -90,
+      opacity: 0,
+      filter: 'brightness(1.5)',
+    }),
+    animate: {
+      rotateY: 0,
+      opacity: 1,
+      filter: 'brightness(1)',
+      transition: { type: 'spring' as const, stiffness: 80, damping: 18 }
+    },
+    exit: (direction: number) => ({
+      rotateY: direction > 0 ? -90 : 90,
+      opacity: 0,
+      filter: 'brightness(0.5)',
+      transition: { duration: 0.25 }
+    })
+  };
+
+  return (
+    <>
+      <style>{notebookCSS}</style>
+      <div className="notebook-fullscreen animate-fade-in">
+
+        {/* Back Button (Fixed to screen) */}
+        <button
+          onClick={onBack}
+          className="absolute top-6 left-6 z-50 bg-white/50 backdrop-blur-md p-3 rounded-full text-slate-600 hover:text-brand-dark-green hover:bg-white shadow-sm transition-all"
+          aria-label="Close Journal"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        <div className="spread-container">
+
+          {/* Left Page — Logo Only */}
+          <div className="page-side left-page">
+            <Logo className="w-32 h-32 object-contain opacity-50" />
+          </div>
+
+          {/* Full Height Photorealistic Spine */}
+          <div className="spine-container">
+            {[...Array(14)].map((_, i) => (
+              <div key={i} className="binder-coil" />
+            ))}
+          </div>
+
+          {/* Right Page (Functional) */}
+          <div className="right-page-container">
+            <AnimatePresence mode="wait" custom={pageDirection}>
+              <motion.div
+                key={currentPage}
+                custom={pageDirection}
+                variants={pageVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                className="right-page"
+              >
+                {/* Header: Date and Time */}
+                <div className="page-header">
+                  <div className="date-group">
+                    <span className="date-num">{dayNum}</span>
+                    <span className="date-text">{monthYear}</span>
+                  </div>
+                  <div className="time-text">{timeStr}</div>
                 </div>
 
-                {/* The Notebook Cover (Base) */}
-                <div className="notebook-book-cover w-full max-w-xl h-[500px] sm:h-[580px]">
+                {/* Title Input */}
+                <input
+                  type="text"
+                  className="title-input"
+                  placeholder="Success Title"
+                  value={activeEntry.title || ''}
+                  onChange={handleTitleChange}
+                />
 
-                    {/* Static Binder Rings Overlay */}
-                    <div className="binder-rings">
-                        {[...Array(9)].map((_, i) => (
-                            <div key={i} className="binder-ring-hole">
-                                <div className="binder-metal-coil" />
-                            </div>
-                        ))}
-                    </div>
-
-                    <div className="notebook-container">
-                        {/* Animating Pages */}
-                        <AnimatePresence initial={false} custom={direction}>
-                            <motion.div
-                                key={currentPage}
-                                custom={direction}
-                                variants={pageVariants}
-                                initial="enter"
-                                animate="center"
-                                exit="exit"
-                                transition={{ duration: 0.75, type: "spring", stiffness: 90, damping: 18 }}
-                                className="absolute inset-0 notebook-paper"
-                                style={{ backfaceVisibility: 'hidden' }}
-                            >
-                                {/* Date Stamp */}
-                                <div className="absolute top-4 right-8 z-20 font-[Caveat] text-[22px] font-bold text-slate-700/80 tracking-wide select-none pointer-events-none rotate-[-2deg]">
-                                    {entries.length > 0 && entries[currentPage] ? (
-                                        currentPage === 0 ? (
-                                            `Today, ${formatTime(new Date().toISOString())}`
-                                        ) : (
-                                            `${formatDate(entries[currentPage].timestamp)} - ${formatTime(entries[currentPage].timestamp)}`
-                                        )
-                                    ) : ''}
-                                </div>
-
-                                {/* Content Area Wrapper */}
-                                <div className="notebook-content">
-                                    {entries.length > 0 && entries[currentPage] && (
-                                        currentPage === 0 ? (
-                                            <textarea
-                                                ref={textareaRef}
-                                                value={entries[currentPage].text}
-                                                onChange={handleTextChange}
-                                                placeholder="My thoughts today..."
-                                                className="notebook-text-layer"
-                                                autoFocus
-                                            />
-                                        ) : (
-                                            <div className="notebook-text-layer">
-                                                {entries[currentPage].text}
-                                            </div>
-                                        )
-                                    )}
-                                </div>
-
-                                {/* Edge Page Numbering */}
-                                <div className="absolute bottom-4 right-6 text-sm text-slate-400 font-[Caveat] font-bold select-none pointer-events-none">
-                                    - {entries.length > 0 && entries[currentPage] ? entries.length - currentPage : 1} -
-                                </div>
-                            </motion.div>
-                        </AnimatePresence>
-                    </div>
+                {/* Ruled Content Area — 20 lines visible, clips overflow at page boundary */}
+                <div className="content-scroll-wrapper hide-scroll">
+                  <textarea
+                    ref={textareaRef}
+                    className="content-textarea"
+                    placeholder="Dear Journal..."
+                    value={activeEntry.text || ''}
+                    onChange={handleTextChange}
+                    autoFocus={currentPage === 0}
+                  />
                 </div>
-            </div>
-        </>
-    );
+
+                {/* Footer Navigation */}
+                <div className="page-footer">
+                  <div className="nav-arrows">
+                    <button
+                      className="footer-btn transition-transform hover:-translate-x-1"
+                      onClick={goToPrev}
+                      style={{ opacity: currentPage < entries.length - 1 ? 1 : 0.2, pointerEvents: currentPage < entries.length - 1 ? 'auto' : 'none' }}
+                      title="Previous page"
+                    >
+                      &larr; previous
+                    </button>
+                    <button
+                      className="footer-btn transition-transform hover:translate-x-1"
+                      onClick={goToNext}
+                      style={{
+                        opacity: isPageFull ? 1 : 0.2,
+                        pointerEvents: isPageFull ? 'auto' : 'none',
+                        color: isPageFull ? '#2b4522' : undefined,
+                        fontWeight: isPageFull ? 700 : undefined,
+                      }}
+                      title={isPageFull ? 'Page full — flip to a new page' : 'Fill this page to continue'}
+                    >
+                      next &rarr;
+                    </button>
+                  </div>
+                  <div className="flex gap-4">
+                    {/* Focus text area to "edit" */}
+                    <button className="footer-btn" onClick={() => textareaRef.current?.focus()}>
+                      <EditIcon />
+                    </button>
+                    <button className="footer-btn hover:text-red-500" onClick={deleteEntry}>
+                      <TrashIcon />
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+        </div>
+      </div>
+    </>
+  );
 };
 
 export default JournalingPrompts;
