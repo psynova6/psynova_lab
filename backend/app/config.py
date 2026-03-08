@@ -10,7 +10,7 @@ load_dotenv(override=True)
 
 class Settings(BaseSettings):
     # ── MongoDB ──
-    MONGODB_URL: str = "mongodb+srv://psynova6_db_user:GQqQouV5E86m4WC9@psynova.gdin41s.mongodb.net/?appName=Psynova"
+    MONGODB_URL: str = ""
     MONGODB_DB_NAME: str = "psynova"
 
     # ── JWT ──
