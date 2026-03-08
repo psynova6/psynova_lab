@@ -533,7 +533,7 @@ export default function DepartmentDetailView({ department, onBack }: { departmen
             animate={{ opacity: 1, scale: 1 }}
             style={{ backgroundColor: P.bg, minHeight: '100%', borderRadius: '32px', padding: '2rem 3rem', fontFamily: 'system-ui, -apple-system, sans-serif' }}
         >
-            <div style={{ display: 'flex', alignItems: 'center', position: 'relative', marginBottom: '2rem', minHeight: '40px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', position: 'relative', marginBottom: '2rem', gap: '1rem', minHeight: '40px' }}>
                 <motion.button
                     whileHover={{ x: -5, opacity: 1 }}
                     onClick={onBack} aria-label="Back" style={{
@@ -544,8 +544,8 @@ export default function DepartmentDetailView({ department, onBack }: { departmen
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
                     Back
                 </motion.button>
-                <div style={{ position: 'absolute', left: 0, right: 0, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
-                    <h1 style={{ fontSize: '2rem', fontWeight: 600, color: P.textMain, margin: 0, pointerEvents: 'auto' }}>
+                <div style={{ display: 'flex', flex: 1, justifyContent: 'center', minWidth: 'min-content' }}>
+                    <h1 style={{ fontSize: '1.5rem', fontWeight: 600, color: P.textMain, margin: 0, textAlign: 'center' }}>
                         {activeTab === 'overview' && 'Department Overview'}
                         {activeTab === 'students' && 'Student Analytics'}
                         {activeTab === 'therapists' && 'Therapist Performance'}
@@ -554,8 +554,8 @@ export default function DepartmentDetailView({ department, onBack }: { departmen
                 </div>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginBottom: '2.5rem' }}>
-                <div style={{ display: 'flex', background: P.tabBg, padding: '0.35rem', borderRadius: '999px', gap: '0.25rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginBottom: '2.5rem', width: '100%' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', background: P.tabBg, padding: '0.35rem', borderRadius: '1.5rem', gap: '0.25rem', width: '100%', maxWidth: '100%' }}>
                     {tabs.map(t => {
                         const isActive = activeTab === t.id;
                         return (
@@ -566,12 +566,13 @@ export default function DepartmentDetailView({ department, onBack }: { departmen
                                 whileTap={{ scale: 0.95 }}
                                 style={{
                                     display: 'flex', alignItems: 'center', gap: '0.5rem',
-                                    padding: '0.6rem 1.25rem', borderRadius: '999px',
-                                    border: 'none', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 600,
+                                    padding: '0.6rem 1rem', borderRadius: '999px',
+                                    border: 'none', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600,
                                     background: isActive ? P.tabActiveBg : 'transparent',
                                     color: isActive ? P.tabActiveText : P.tabInactiveText,
                                     transition: 'background 0.2s, color 0.2s',
-                                    boxShadow: isActive ? '0 4px 12px rgba(124, 162, 131, 0.3)' : 'none'
+                                    boxShadow: isActive ? '0 4px 12px rgba(124, 162, 131, 0.3)' : 'none',
+                                    flexGrow: 1, justifyContent: 'center', whiteSpace: 'nowrap'
                                 }}
                             >
                                 <span style={{ display: 'flex', alignItems: 'center', opacity: isActive ? 1 : 0.7 }}>{t.icon}</span>

@@ -41,24 +41,28 @@ const notebookCSS = `
 
   /* Global Wrapper: Vignette Background */
   .notebook-fullscreen {
-    position: absolute;
+    position: fixed;
     inset: 0;
-    width: 100%;
-    height: 100%;
+    width: 100vw;
+    height: 100dvh;
     background: radial-gradient(circle at center, #ffffff 40%, #c4d6ee 100%);
     box-shadow: inset 0 0 150px rgba(118, 153, 206, 0.4);
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 2rem 0;
   }
 
   /* Two-Page Spread Layout */
   .spread-container {
     display: flex;
-    width: 90%;
+    width: 95%;
     max-width: 1200px;
     height: 85vh;
+    min-height: 850px;
+    margin: auto; /* centers vertically inside flex parent if viewport is taller than min-height */
     box-shadow: 
       0 20px 50px rgba(0,0,0,0.15),
       0 5px 15px rgba(0,0,0,0.05);
@@ -200,6 +204,7 @@ const notebookCSS = `
     .spread-container {
       width: 95%;
       height: 90vh;
+      min-height: 880px;
       flex-direction: column;
     }
     
@@ -240,6 +245,13 @@ const notebookCSS = `
 
     .title-input {
       font-size: 1.5rem;
+    }
+  }
+
+  @media (max-height: 600px) {
+    /* Prevent the notebook from looking too massive on landscape mobile */
+    .spread-container {
+      min-height: 120vh;
     }
   }
 
@@ -665,7 +677,7 @@ const JournalingPrompts: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         {/* Back Button (Fixed to screen) */}
         <button
           onClick={onBack}
-          className="absolute top-6 left-6 z-50 bg-white/50 backdrop-blur-md p-3 rounded-full text-slate-600 hover:text-brand-dark-green hover:bg-white shadow-sm transition-all"
+          className="fixed top-4 left-4 sm:top-6 sm:left-6 z-[100] bg-white/50 backdrop-blur-md p-3 rounded-full text-slate-600 hover:text-brand-dark-green hover:bg-white shadow-sm transition-all"
           aria-label="Close Journal"
         >
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">

@@ -162,10 +162,10 @@ const ConnectedStudentsPanel: React.FC = () => {
             </h2>
 
             {/* Tabs */}
-            <div className="flex gap-1.5 bg-brand-background/50 border border-brand-light-green/20 rounded-full p-1.5 mb-6 w-fit">
+            <div className="flex gap-1.5 flex-wrap bg-brand-background/50 border border-brand-light-green/20 rounded-2xl sm:rounded-full p-1.5 mb-6 w-fit">
                 <button
                     onClick={() => setActiveTab('requests')}
-                    className={`flex items-center gap-2 px-5 py-2 rounded-full text-sm font-bold transition-all ${activeTab === 'requests' ? 'bg-white text-brand-dark-green shadow-sm border border-brand-light-green/30' : 'text-brand-dark-green/60 hover:text-brand-dark-green hover:bg-white/50 border border-transparent'}`}
+                    className={`flex items-center gap-2 px-3 sm:px-5 py-2 rounded-xl sm:rounded-full text-xs sm:text-sm font-bold transition-all ${activeTab === 'requests' ? 'bg-white text-brand-dark-green shadow-sm border border-brand-light-green/30' : 'text-brand-dark-green/60 hover:text-brand-dark-green hover:bg-white/50 border border-transparent'}`}
                 >
                     <BellIcon className="w-4 h-4" />
                     Connection Requests
@@ -177,7 +177,7 @@ const ConnectedStudentsPanel: React.FC = () => {
                 </button>
                 <button
                     onClick={() => setActiveTab('connected')}
-                    className={`flex items-center gap-2 px-5 py-2 rounded-full text-sm font-bold transition-all ${activeTab === 'connected' ? 'bg-white text-brand-dark-green shadow-sm border border-brand-light-green/30' : 'text-brand-dark-green/60 hover:text-brand-dark-green hover:bg-white/50 border border-transparent'}`}
+                    className={`flex items-center gap-2 px-3 sm:px-5 py-2 rounded-xl sm:rounded-full text-xs sm:text-sm font-bold transition-all ${activeTab === 'connected' ? 'bg-white text-brand-dark-green shadow-sm border border-brand-light-green/30' : 'text-brand-dark-green/60 hover:text-brand-dark-green hover:bg-white/50 border border-transparent'}`}
                 >
                     <CheckIcon className="w-4 h-4" />
                     Connected Students
@@ -210,7 +210,7 @@ const ConnectedStudentsPanel: React.FC = () => {
                                     {new Date(connection.requestedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </p>
                             </div>
-                            <div className="flex gap-2 flex-shrink-0">
+                            <div className="flex flex-wrap sm:flex-nowrap gap-2 flex-shrink-0 w-full sm:w-auto mt-3 sm:mt-0">
                                 <button
                                     onClick={handleAccept}
                                     aria-label="Accept connection request"
@@ -243,7 +243,7 @@ const ConnectedStudentsPanel: React.FC = () => {
                     {connection?.status === 'accepted' ? (
                         <div className="space-y-4">
                             <div className="p-5 bg-brand-background/30 border border-brand-light-green/30 rounded-2xl shadow-sm animate-fade-in-down hover:shadow-md transition-shadow">
-                                <div className="flex items-center gap-4 mb-4">
+                                <div className="flex flex-wrap md:flex-nowrap items-center gap-4 mb-4">
                                     <div className="w-12 h-12 rounded-full bg-brand-light-green/20 flex items-center justify-center shadow-inner">
                                         <UserIcon className="w-6 h-6 text-brand-dark-green" />
                                     </div>
@@ -257,7 +257,7 @@ const ConnectedStudentsPanel: React.FC = () => {
                                             <p className="text-sm text-brand-dark-green/50 italic">No slot scheduled yet</p>
                                         )}
                                     </div>
-                                    <span className="ml-auto bg-green-100 text-green-700 text-xs font-semibold px-3 py-1 rounded-full">Connected</span>
+                                    <span className="md:ml-auto w-full md:w-auto text-center md:text-left bg-green-100 text-green-700 text-xs font-semibold px-3 py-1 rounded-full">Connected</span>
                                 </div>
 
                                 {/* Incoming call from student */}
@@ -287,7 +287,7 @@ const ConnectedStudentsPanel: React.FC = () => {
 
                                 {/* Contact buttons (therapist initiating) */}
                                 {!showContactOptions ? (
-                                    <div className="flex gap-3 w-full animate-fade-in-down">
+                                    <div className="flex flex-col sm:flex-row gap-3 w-full animate-fade-in-down">
                                         <button
                                             onClick={() => { if (!isSessionSoon) { setShowGateMsg(true); return; } setShowGateMsg(false); setShowContactOptions(true); }}
                                             className="flex-1 bg-brand-dark-green text-white font-semibold py-2.5 rounded-full hover:bg-brand-dark-green/90 transition-colors text-sm"

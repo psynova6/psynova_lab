@@ -138,8 +138,8 @@ const TherapistDashboard: React.FC<TherapistDashboardProps> = ({ userProfile, on
                             </h1>
                         </div>
 
-                        <div className="flex justify-center mb-8 sm:mb-10 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
-                            <div className="flex bg-white/50 backdrop-blur-sm p-1 rounded-full gap-1 shadow-sm border border-brand-light-green/10 whitespace-nowrap">
+                        <div className="flex justify-center mb-8 sm:mb-10 w-full px-1">
+                            <div className="flex flex-wrap justify-center bg-white/50 backdrop-blur-sm p-1 sm:p-1.5 rounded-2xl sm:rounded-full gap-1 sm:gap-2 shadow-sm border border-brand-light-green/10">
                                 {[
                                     { id: 'connections', label: 'Connections', icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg> },
                                     { id: 'departments', label: 'Departments', icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg> },
@@ -154,8 +154,8 @@ const TherapistDashboard: React.FC<TherapistDashboardProps> = ({ userProfile, on
                                             whileHover={{ scale: 1.05 }}
                                             whileTap={{ scale: 0.95 }}
                                             className={`
-                                                flex items-center gap-2 px-4 py-2 sm:px-6 sm:py-2.5 rounded-full 
-                                                text-sm sm:text-base font-semibold transition-all duration-300
+                                                flex items-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-6 sm:py-2.5 rounded-xl sm:rounded-full 
+                                                text-xs sm:text-sm md:text-base font-semibold transition-all duration-300
                                                 ${isActive
                                                     ? 'bg-brand-dark-green text-white shadow-lg shadow-brand-dark-green/20'
                                                     : 'text-brand-dark-green/60 hover:text-brand-dark-green hover:bg-white/50'}
