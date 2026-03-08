@@ -20,8 +20,8 @@ async def connect_db() -> None:
     client = AsyncIOMotorClient(
         settings.MONGODB_URL,
         tlsCAFile=certifi.where(),
-        serverSelectionTimeoutMS=30000,
-        connectTimeoutMS=30000
+        serverSelectionTimeoutMS=10000,
+        connectTimeoutMS=10000
     )
     db = client[settings.MONGODB_DB_NAME]
 
