@@ -6,6 +6,7 @@ export type UserRoleType = 'student' | 'therapist' | 'assistant' | 'volunteer';
 export interface Message {
   role: 'user' | 'model';
   text: string;
+  timestamp?: string;
 }
 
 export interface FeatureCardProps {
@@ -21,10 +22,20 @@ export interface UserProfile {
   avatar: string | null; // base64 string or null
 }
 
+export type TherapistConnectionStatus = 'idle' | 'pending' | 'accepted' | 'rejected';
+
+export interface TherapistSlot {
+  id: number;
+  date: string; // e.g., "Mar 10, 2026"
+  time: string; // e.g., "10:00 AM"
+  available: boolean;
+}
+
 export interface Session {
   therapistName: string;
   date: string;
-  status: 'Completed';
+  scheduledTime?: string; // ISO string for the scheduled session time
+  status: 'Completed' | 'scheduled' | 'cancelled';
 }
 
 export interface Notification {

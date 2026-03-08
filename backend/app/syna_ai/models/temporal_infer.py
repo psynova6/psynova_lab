@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import torch
+import functools
 from app.syna_ai.config import MODELS_DIR
 
 # Configuration
@@ -14,6 +15,18 @@ _temporal_model = None
 _tokenizer = None
 _bert_model = None
 _device = None
+
+@functools.lru_cache(maxsize=100)
+def _get_embedding(text):
+    global _tokenizer, _bert_model, _device
+    _load_resources()
+    if _bert_model is None:
+        return np.zeros(768)
+    
+    with torch.no_grad():
+        inputs = _tokenizer(text, return_tensors="pt", truncation=True, padding="max_length", max_length=96).to(_device)
+        outputs = _bert_model(**inputs)
+        return outputs.last_hidden_state[:, 0, :].cpu().numpy()[0]
 
 def _load_resources():
     global _temporal_model, _tokenizer, _bert_model, _device
@@ -39,11 +52,25 @@ def _load_resources():
                     return out
 
             model_path = os.path.join(MODELS_DIR, "lstm_temporal.pth")
+            bert_local_path = os.path.join(MODELS_DIR, "distilbert-base-uncased")
+            
+            # Check if local DistilBERT weights actually exist
+            def weights_exist(path):
+                return os.path.exists(os.path.join(path, "pytorch_model.bin")) or \
+                       os.path.exists(os.path.join(path, "model.safetensors"))
+
+            if os.path.exists(bert_local_path) and weights_exist(bert_local_path):
+                bert_source = bert_local_path
+                print(f"DEBUG: Loading DistilBERT from local path: {bert_local_path}")
+            else:
+                bert_source = "distilbert-base-uncased"
+                print(f"WARNING: Local DistilBERT weights missing. Falling back to Hugging Face: {bert_source}")
+            
             _device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
             
             # Load BERT for feature extraction
-            _tokenizer = DistilBertTokenizerFast.from_pretrained("distilbert-base-uncased")
-            _bert_model = DistilBertModel.from_pretrained("distilbert-base-uncased")
+            _tokenizer = DistilBertTokenizerFast.from_pretrained(bert_source)
+            _bert_model = DistilBertModel.from_pretrained(bert_source)
             _bert_model.to(_device)
             _bert_model.eval()
             
@@ -53,8 +80,9 @@ def _load_resources():
                 _temporal_model.load_state_dict(torch.load(model_path, map_location=_device))
                 _temporal_model.to(_device)
                 _temporal_model.eval()
+                print("DEBUG: LSTM Temporal model loaded successfully.")
             else:
-                print("WARNING: LSTM temporal model not found at", model_path)
+                print(f"WARNING: LSTM temporal model weights missing at {model_path}. Sequential risk detection will be disabled.")
         except Exception as e:
             print(f"ERROR: Error loading Temporal LSTM resources: {e}")
 
@@ -77,12 +105,8 @@ def predict_temporal_risk_lstm(history_texts: list) -> int:
             seq_texts = padding + seq_texts
             
         embeddings = []
-        with torch.no_grad():
-            for text in seq_texts:
-                inputs = _tokenizer(text, return_tensors="pt", truncation=True, padding="max_length", max_length=96).to(_device)
-                outputs = _bert_model(**inputs)
-                embed = outputs.last_hidden_state[:, 0, :].cpu().numpy()[0]
-                embeddings.append(embed)
+        for text in seq_texts:
+            embeddings.append(_get_embedding(text))
         
         # Shape: (1, 5, 768)
         input_tensor = torch.tensor(np.array([embeddings]), dtype=torch.float32).to(_device)
@@ -112,12 +136,8 @@ def get_probabilities(history_texts: list):
             seq_texts = padding + seq_texts
             
         embeddings = []
-        with torch.no_grad():
-            for text in seq_texts:
-                inputs = _tokenizer(text, return_tensors="pt", truncation=True, padding="max_length", max_length=96).to(_device)
-                outputs = _bert_model(**inputs)
-                embed = outputs.last_hidden_state[:, 0, :].cpu().numpy()[0]
-                embeddings.append(embed)
+        for text in seq_texts:
+            embeddings.append(_get_embedding(text))
         
         input_tensor = torch.tensor(np.array([embeddings]), dtype=torch.float32).to(_device)
         

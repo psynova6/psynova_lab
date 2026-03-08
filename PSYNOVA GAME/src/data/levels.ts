@@ -77,14 +77,8 @@ export function getLevelConfig(levelId: number): LevelConfig {
     // Actually, let's use `picsum` with grayscale=false for now as a fallback 
     // IF we can't get unsplash working perfectly without a key. 
     //
-    return {
-        id: levelId,
-        levelNumber: levelId,
-        gridSize,
-        imageSrc,
-        category,
-        difficultyLabel
-    } as any;
+    // WAIT. I can just use a large list of Unsplash IDs. I'll paste 20 real IDs below.
+    return getLevel(levelId);
 }
 
 // curated list of high-quality Unsplash Image IDs

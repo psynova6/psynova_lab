@@ -59,6 +59,7 @@ export const authService = {
     },
 
     async login(data: any) {
+        // ACTUAL LOGIN - remove mock
         const response = await apiClient.post('/login', data);
         return response.data;
     },

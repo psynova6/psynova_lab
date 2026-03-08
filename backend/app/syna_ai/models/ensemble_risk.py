@@ -38,37 +38,47 @@ def load_ensemble():
         distil_model_path = os.path.join(MODELS_DIR, "distilbert-risk")
         bert_model_path = os.path.join(MODELS_DIR, "bert-risk")
         
+        # Check for weight files (pytorch_model.bin or model.safetensors)
+        def weights_exist(path):
+            return os.path.exists(os.path.join(path, "pytorch_model.bin")) or \
+                   os.path.exists(os.path.join(path, "model.safetensors"))
+
         print(f"DEBUG: Paths - DistilBERT: {distil_model_path}, BERT: {bert_model_path}")
 
-        # Load DistilBERT
-        print("DEBUG: Loading DistilBERT Tokenizer...")
-        _models["distil_tokenizer"] = DistilBertTokenizer.from_pretrained(distil_model_path)
-        print("DEBUG: DistilBERT Tokenizer OK. Loading DistilBERT Model...")
-        _models["distil_model"] = DistilBertForSequenceClassification.from_pretrained(
-            distil_model_path, low_cpu_mem_usage=True
-        )
-        print("DEBUG: DistilBERT Model OK. Moving to device...")
-        _models["distil_model"].to(device)
-        print("DEBUG: DistilBERT Model on device. Eval mode...")
-        _models["distil_model"].eval()
+        # Load DistilBERT only if weights exist
+        if weights_exist(distil_model_path):
+            print("DEBUG: Loading DistilBERT Tokenizer...")
+            _models["distil_tokenizer"] = DistilBertTokenizer.from_pretrained(distil_model_path)
+            print("DEBUG: DistilBERT Tokenizer OK. Loading DistilBERT Model...")
+            _models["distil_model"] = DistilBertForSequenceClassification.from_pretrained(
+                distil_model_path, low_cpu_mem_usage=True
+            )
+            print("DEBUG: DistilBERT Model OK. Moving to device...")
+            _models["distil_model"].to(device)
+            _models["distil_model"].eval()
+        else:
+            print(f"WARNING: Weights missing for DistilBERT in {distil_model_path}. Skipping DistilBERT.")
 
-        # Load BERT
-        print("DEBUG: Loading BERT Tokenizer...")
-        _models["bert_tokenizer"] = BertTokenizer.from_pretrained(bert_model_path)
-        print("DEBUG: BERT Tokenizer OK. Loading BERT Model...")
-        _models["bert_model"] = BertForSequenceClassification.from_pretrained(
-            bert_model_path, low_cpu_mem_usage=True
-        )
-        print("DEBUG: BERT Model OK. Moving to device...")
-        _models["bert_model"].to(device)
-        print("DEBUG: BERT Model on device. Eval mode...")
-        _models["bert_model"].eval()
-        print("BERT Ensemble loaded successfully.")
+        # Load BERT only if weights exist
+        if weights_exist(bert_model_path):
+            print("DEBUG: Loading BERT Tokenizer...")
+            _models["bert_tokenizer"] = BertTokenizer.from_pretrained(bert_model_path)
+            print("DEBUG: BERT Tokenizer OK. Loading BERT Model...")
+            _models["bert_model"] = BertForSequenceClassification.from_pretrained(
+                bert_model_path, low_cpu_mem_usage=True
+            )
+            print("DEBUG: BERT Model OK. Moving to device...")
+            _models["bert_model"].to(device)
+            _models["bert_model"].eval()
+        else:
+            print(f"WARNING: Weights missing for BERT in {bert_model_path}. Skipping BERT.")
+
+        print("BERT Ensemble loading process finished.")
     except Exception as e:
         print(f"CRITICAL ERROR loading Ensemble models: {e}")
         import traceback
         traceback.print_exc()
-        raise e
+        # We don't raise here anymore to let the app start even if models fail
 
 
 # ===========================
@@ -81,37 +91,33 @@ def predict_risk_ensemble(text: str) -> int:
     import torch.nn.functional as F
     device = _models["device"]
 
+    probs_list = []
+
     # ---- DistilBERT ----
-    inputs_d = _models["distil_tokenizer"](
-        text,
-        return_tensors="pt",
-        truncation=True,
-        padding=True,
-        max_length=128
-    ).to(device)
-
-    with torch.no_grad():
-        outputs_d = _models["distil_model"](**inputs_d)
-
-    probs_d = F.softmax(outputs_d.logits, dim=1)
+    if _models["distil_model"] is not None and _models["distil_tokenizer"] is not None:
+        inputs_d = _models["distil_tokenizer"](
+            text, return_tensors="pt", truncation=True, padding=True, max_length=128
+        ).to(device)
+        with torch.no_grad():
+            outputs_d = _models["distil_model"](**inputs_d)
+        probs_d = F.softmax(outputs_d.logits, dim=1)
+        probs_list.append(probs_d)
 
     # ---- BERT ----
-    inputs_b = _models["bert_tokenizer"](
-        text,
-        return_tensors="pt",
-        truncation=True,
-        padding=True,
-        max_length=128
-    ).to(device)
+    if _models["bert_model"] is not None and _models["bert_tokenizer"] is not None:
+        inputs_b = _models["bert_tokenizer"](
+            text, return_tensors="pt", truncation=True, padding=True, max_length=128
+        ).to(device)
+        with torch.no_grad():
+            outputs_b = _models["bert_model"](**inputs_b)
+        probs_b = F.softmax(outputs_b.logits, dim=1)
+        probs_list.append(probs_b)
 
-    with torch.no_grad():
-        outputs_b = _models["bert_model"](**inputs_b)
-
-    probs_b = F.softmax(outputs_b.logits, dim=1)
-
-    # ---- Average probabilities ----
-    avg_probs = (probs_d + probs_b) / 2
-
+    # ---- Combine ----
+    if not probs_list:
+        return 0  # Fallback if no ensemble models available
+        
+    avg_probs = torch.stack(probs_list).mean(dim=0)
     final_class = torch.argmax(avg_probs, dim=1).item()
 
     return final_class

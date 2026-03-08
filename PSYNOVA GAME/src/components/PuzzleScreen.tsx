@@ -4,6 +4,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useJigsaw } from '../hooks/useJigsaw';
 import { getLevel, getStarRating } from '../data/levels';
 import { playSnap } from '../data/audio';
+import RulesModal from './RulesModal';
+import { getPieceEdges, buildJigsawPath, PIECE_SCALE, VIEWBOX } from '../utils/jigsawClipPath';
+import { gameApiService } from '../services/gameApiService';
 
 /* ─── Layout constants ─── */
 const BOARD_SIZE = 480;
@@ -22,17 +25,25 @@ function fmtTime(s: number) {
 function Piece({
     piece,
     cellSize,
+    paddedCellSize,
+    isSelected,
+    jigsawPath,
     onDragStart,
     onDragMove,
     onDragEnd,
     onRotate,
+    onSelect,
 }: {
     piece: import('../types').PuzzlePiece;
     cellSize: number;
+    paddedCellSize: number;
+    isSelected: boolean;
+    jigsawPath: string | null;
     onDragStart: (id: number) => void;
     onDragMove: (id: number, x: number, y: number) => void;
     onDragEnd: (id: number) => void;
     onRotate: (id: number) => void;
+    onSelect: (id: number) => void;
 }) {
     const dragging = useRef(false);
     const offset = useRef({ x: 0, y: 0 });
@@ -59,9 +70,10 @@ function Piece({
                     y: e.clientY - rect.top - piece.y,
                 };
             }
+            onSelect(piece.id);
             onDragStart(piece.id);
         },
-        [piece.id, piece.x, piece.y, piece.locked, onDragStart, getParentRect],
+        [piece.id, piece.x, piece.y, piece.locked, onDragStart, onSelect, getParentRect],
     );
 
     const onPointerMove = useCallback(
@@ -91,12 +103,16 @@ function Piece({
         [piece.id, piece.locked, onRotate],
     );
 
+    const showRotateBtn = isSelected && !piece.locked;
+    const clipId = `jigsaw-clip-${piece.id}`;
+    const sz = paddedCellSize;
+
     return (
         <div
             className={`puzzle-piece absolute ${piece.locked ? 'pointer-events-none' : 'cursor-grab active:cursor-grabbing'}`}
             style={{
-                width: cellSize,
-                height: cellSize,
+                width: sz,
+                height: sz,
                 left: piece.x,
                 top: piece.y,
                 zIndex: piece.locked ? 1 : piece.zIndex,
@@ -108,6 +124,17 @@ function Piece({
             onPointerUp={onPointerUp}
             onContextMenu={onContextMenu}
         >
+            {/* SVG clip-path definition */}
+            {jigsawPath && (
+                <svg width="0" height="0" style={{ position: 'absolute' }}>
+                    <defs>
+                        <clipPath id={clipId} clipPathUnits="objectBoundingBox"
+                            transform={`scale(${1 / PIECE_SCALE})`}>
+                            <path d={jigsawPath} />
+                        </clipPath>
+                    </defs>
+                </svg>
+            )}
             <img
                 src={piece.imageData}
                 alt=""
@@ -115,11 +142,41 @@ function Piece({
                 className="w-full h-full select-none"
                 style={{
                     filter: piece.locked ? 'none' : 'drop-shadow(0 4px 8px rgba(0,0,0,0.5))',
-                    borderRadius: 2,
+                    clipPath: jigsawPath ? `url(#${clipId})` : undefined,
+                    WebkitClipPath: jigsawPath ? `url(#${clipId})` : undefined,
                 }}
             />
             {piece.locked && (
-                <div className="absolute inset-0 border-2 border-brand-accent/40 rounded-sm pointer-events-none" />
+                <div className="absolute inset-0 pointer-events-none" />
+            )}
+            {/* Rotate button */}
+            {showRotateBtn && (
+                <button
+                    className="rotate-btn absolute flex items-center justify-center
+                        bg-brand-accent text-brand-bg rounded-full shadow-lg
+                        hover:bg-brand-accentAlt hover:scale-110 active:scale-95
+                        transition-all duration-150 pointer-events-auto"
+                    style={{
+                        width: Math.max(24, cellSize * 0.3),
+                        height: Math.max(24, cellSize * 0.3),
+                        top: -Math.max(12, cellSize * 0.15),
+                        right: -Math.max(12, cellSize * 0.15),
+                        fontSize: Math.max(12, cellSize * 0.18),
+                        transform: `rotate(${-piece.rotation}deg)`,
+                        zIndex: 9999,
+                    }}
+                    onPointerDown={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onRotate(piece.id);
+                    }}
+                    title="Rotate piece"
+                >
+                    ↻
+                </button>
             )}
         </div>
     );
@@ -247,6 +304,8 @@ export default function PuzzleScreen() {
 
     const [soundOn, setSoundOn] = useState(true);
     const [starsEarned, setStarsEarned] = useState(0);
+    const [showRules, setShowRules] = useState(false);
+    const [selectedPieceId, setSelectedPieceId] = useState<number | null>(null);
 
     const {
         pieces,
@@ -255,6 +314,8 @@ export default function PuzzleScreen() {
         completed,
         elapsedSeconds,
         cellSize,
+        paddedCellSize,
+        edgeMap,
         handleDragStart,
         handleDragMove,
         handleDragEnd,
@@ -291,7 +352,17 @@ export default function PuzzleScreen() {
                 userProgress.stars[levelId] = stars;
             }
 
+
             localStorage.setItem('zenSnapProgress', JSON.stringify(userProgress));
+
+            // Sync with remote
+            gameApiService.updateProgress('zensnap', {
+                current_scene_id: 'map',
+                flags: { highestLevel: userProgress.highestLevel },
+                history: [],
+                completed_endings: Object.entries(userProgress.stars).map(([lvl, stars]) => `level-${lvl}-stars-${stars}`)
+            }).catch(err => console.error("Remote sync failed", err));
+
             playSnap(); // Victory sound? We reused snap for now
         }
     }, [completed]);
@@ -351,6 +422,14 @@ export default function PuzzleScreen() {
                         🔄 Restart
                     </button>
                 </div>
+
+                {/* Rules Button */}
+                <button
+                    onClick={() => setShowRules(true)}
+                    className="w-full py-2 rounded-brand bg-brand-surface border border-brand-border text-xs text-brand-muted hover:text-white hover:border-brand-accent/40 transition-colors"
+                >
+                    📖 Rules
+                </button>
             </aside>
 
             {/* ───── PUZZLE AREA ───── */}
@@ -402,20 +481,43 @@ export default function PuzzleScreen() {
                         </div>
 
                         {/* Pieces */}
-                        {pieces.map((p) => (
-                            <Piece
-                                key={p.id}
-                                piece={p}
-                                cellSize={cellSize}
-                                onDragStart={handleDragStart}
-                                onDragMove={handleDragMove}
-                                onDragEnd={handleDragEnd}
-                                onRotate={handleRotate}
-                            />
-                        ))}
+                        {pieces.map((p) => {
+                            let jigsawPath: string | null = null;
+                            if (edgeMap) {
+                                const edges = getPieceEdges(p.correctRow, p.correctCol, levelConfig.gridSize, edgeMap);
+                                jigsawPath = buildJigsawPath(edges.top, edges.right, edges.bottom, edges.left);
+                            }
+                            return (
+                                <Piece
+                                    key={p.id}
+                                    piece={p}
+                                    cellSize={cellSize}
+                                    paddedCellSize={paddedCellSize}
+                                    isSelected={selectedPieceId === p.id}
+                                    jigsawPath={jigsawPath}
+                                    onDragStart={handleDragStart}
+                                    onDragMove={handleDragMove}
+                                    onDragEnd={(id) => {
+                                        handleDragEnd(id);
+                                        // Deselect if piece got locked
+                                        const piece = pieces.find(pp => pp.id === id);
+                                        if (piece?.locked) setSelectedPieceId(null);
+                                    }}
+                                    onRotate={handleRotate}
+                                    onSelect={setSelectedPieceId}
+                                />
+                            );
+                        })}
                     </div>
                 )}
             </div>
+
+            {/* ───── RULES MODAL ───── */}
+            <AnimatePresence>
+                {showRules && !completed && (
+                    <RulesModal onStart={() => setShowRules(false)} />
+                )}
+            </AnimatePresence>
 
             {/* ───── COMPLETION MODAL ───── */}
             <AnimatePresence>

@@ -64,22 +64,26 @@ const Header: React.FC<HeaderProps> = ({
   }
 
   return (
-    <header className="sticky top-0 bg-brand-background/80 backdrop-blur-md z-40 border-b border-white/30 transition-all duration-300">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20 md:h-24">
-          <div className="flex items-center min-w-0 ml-2 md:ml-6">
-            <Logo className="h-14 md:h-20 w-auto transition-all duration-300 drop-shadow-[0_4px_12px_rgba(0,0,0,0.1)]" />
+    <header className="sticky top-0 bg-[#f1ece9] z-40 transition-all duration-300 hover:shadow-md">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-full">
+        <div className="flex items-center justify-between h-16 md:h-20">
+          <div className="flex items-center ml-2 md:ml-4 flex-shrink-0 overflow-visible">
+            <div style={{ transform: 'scale(4.0)', transformOrigin: 'center left', display: 'inline-flex' }}>
+              <Logo className="h-8 md:h-9 w-auto transition-all duration-300" />
+            </div>
           </div>
           <div className="flex items-center space-x-2 flex-shrink-0">
             <div className="relative" ref={notificationsRef}>
               <button
                 onClick={handleNotificationsClick}
                 aria-label="Open notifications"
-                className="relative p-2 rounded-full text-brand-dark-green hover:bg-brand-light-green/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-dark-green"
+                className="relative p-2 rounded-full text-brand-dark-green hover:bg-brand-light-green/30
+                           hover:scale-110 transition-all duration-200
+                           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-dark-green"
               >
                 <NotificationIcon className="h-6 w-6" />
                 {hasUnreadNotifications && (
-                  <span className="absolute top-1 right-1 block h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-brand-background"></span>
+                  <span className="absolute top-1 right-1 block h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-brand-background animate-bounce-in"></span>
                 )}
               </button>
               <NotificationsDropdown
@@ -97,7 +101,9 @@ const Header: React.FC<HeaderProps> = ({
               <button
                 onClick={handleAccountToggle}
                 aria-label="Open account menu"
-                className="rounded-full text-brand-dark-green hover:bg-brand-light-green/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-dark-green"
+                className="rounded-full text-brand-dark-green hover:bg-brand-light-green/30
+                           hover:scale-110 transition-all duration-200
+                           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-dark-green"
               >
                 {userProfile.avatar ? (
                   <img src={userProfile.avatar} alt="User Avatar" className="h-8 w-8 rounded-full object-cover" />

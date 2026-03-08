@@ -56,7 +56,6 @@ function StudentDashboard({ userProfile, onLogout, onProfileUpdate }: StudentDas
   // Persistent state using our custom hook for localStorage synchronization
   const [selectedPlan, setSelectedPlan] = usePersistentState<string | null>('selectedPlan', null);
   const [sessionHistory, setSessionHistory] = usePersistentState<Session[]>('sessionHistory', []);
-  const [chatHistory, setChatHistory] = usePersistentState<Message[]>('chatHistory', []);
   const [notifications, setNotifications] = usePersistentState<Notification[]>('notifications', []);
   const [lastCheckinCompleted, setLastCheckinCompleted] = usePersistentState<string | null>('lastCheckinCompleted', null);
   const [reminders, setReminders] = usePersistentState<Reminder[]>('reminders', []);
@@ -103,11 +102,12 @@ function StudentDashboard({ userProfile, onLogout, onProfileUpdate }: StudentDas
     setSelectedPlan(planName);
   }, [setSelectedPlan]);
 
-  const handleBookSession = useCallback((therapistName: string) => {
+  const handleBookSession = useCallback((therapistName: string, scheduledTime?: string) => {
     const newSession: Session = {
       therapistName,
       date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-      status: 'Completed',
+      scheduledTime,
+      status: scheduledTime ? 'scheduled' : 'Completed',
     };
     setSessionHistory(prev => [newSession, ...prev]);
     addNotification({
@@ -117,9 +117,14 @@ function StudentDashboard({ userProfile, onLogout, onProfileUpdate }: StudentDas
     });
   }, [setSessionHistory, addNotification]);
 
-  const handleNewMessage = useCallback((messages: Message[]) => {
-    setChatHistory(messages);
-  }, [setChatHistory])
+  const handleConnectionNotification = useCallback((message: string) => {
+    addNotification({
+      icon: 'CheckIcon',
+      title: "Connection Successful",
+      description: message,
+    });
+  }, [addNotification]);
+
 
   const handleAssessmentComplete = useCallback(() => {
     setIsAssessmentOpen(false);
@@ -256,9 +261,6 @@ function StudentDashboard({ userProfile, onLogout, onProfileUpdate }: StudentDas
     }).sort((a, b) => b.id - a.id); // Ensure latest notifications are first
   }, [notifications]);
 
-  // Derived state to check for premium plan
-  const hasPremiumPlan = selectedPlan === 'Premium';
-
   const lastCheckinValue = lastCheckinCompleted || 'initial';
   const isCurrentPeriodDismissed = dismissedCheckinPeriod === lastCheckinValue;
 
@@ -282,11 +284,11 @@ function StudentDashboard({ userProfile, onLogout, onProfileUpdate }: StudentDas
           />
         )}
 
-        <div className="container mx-auto px-3 sm:px-4 lg:px-8">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <WelcomeBanner userName={userProfile.name} />
           <DailyAffirmation affirmation={dailyAffirmation} />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 mb-12 md:mb-16 items-stretch">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-8 mb-8 sm:mb-12 md:mb-16 items-stretch">
             <div className="animate-fade-up [animation-delay:100ms]">
               <FeatureCard
                 icon={<RobotIcon className="w-8 h-8 text-brand-dark-green" />}
@@ -309,9 +311,9 @@ function StudentDashboard({ userProfile, onLogout, onProfileUpdate }: StudentDas
               <FeatureCard
                 icon={<TherapistIcon className="w-8 h-8 text-brand-dark-green" />}
                 title="Connect with Therapists"
-                description="Ready for the next step? Upgrade to connect with professional therapists for personalized guidance."
-                actionText={hasPremiumPlan ? 'CONNECT' : 'View Plans'}
-                onClick={hasPremiumPlan ? () => setIsTherapistModalOpen(true) : () => setIsSubscriptionOpen(true)}
+                description="Connect with professional therapists for personalized guidance and support."
+                actionText="Connect"
+                onClick={() => setIsTherapistModalOpen(true)}
               />
             </div>
             <div className="animate-fade-up [animation-delay:400ms]">
@@ -339,8 +341,6 @@ function StudentDashboard({ userProfile, onLogout, onProfileUpdate }: StudentDas
         {isChatOpen && <ChatbotModal
           isOpen={isChatOpen}
           onClose={() => setIsChatOpen(false)}
-          chatHistory={chatHistory}
-          onNewMessage={handleNewMessage}
         />}
         {isAssessmentOpen && <AssessmentModal
           isOpen={isAssessmentOpen}
@@ -353,6 +353,7 @@ function StudentDashboard({ userProfile, onLogout, onProfileUpdate }: StudentDas
           isOpen={isTherapistModalOpen}
           onClose={() => setIsTherapistModalOpen(false)}
           onBookSession={handleBookSession}
+          onConnectionNotification={handleConnectionNotification}
         />}
         {isProfileSettingsOpen && <ProfileSettingsModal
           isOpen={isProfileSettingsOpen}

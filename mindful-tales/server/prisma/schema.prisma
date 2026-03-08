@@ -1,0 +1,100 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Story {
+  id           String   @id
+  title        String
+  theme        String
+  goal         String
+  panelCount   Int
+  initialPrompt String
+  chapters     Chapter[]
+  scenes       Scene[]
+  characters   StoryCharacter[]
+  backgrounds  StoryBackground[]
+  panelMappings PanelMapping[]
+  progress     UserProgress[]
+  analytics    AnalyticsEvent[]
+}
+
+model Chapter {
+  id           String @id
+  storyId      String
+  title        String
+  order        Int
+  entrySceneId String
+  story        Story  @relation(fields: [storyId], references: [id])
+}
+
+model StoryCharacter {
+  id              String @id
+  storyId         String
+  name            String
+  spritePrefix    String
+  defaultExpression String @default("neutral")
+  story           Story  @relation(fields: [storyId], references: [id])
+}
+
+model StoryBackground {
+  id      String @id
+  storyId String
+  name    String
+  file    String
+  story   Story  @relation(fields: [storyId], references: [id])
+}
+
+model Scene {
+  id           String  @id
+  storyId      String
+  chapterId    String
+  text         String
+  speaker      String?
+  bgKey        String
+  characters   String  // JSON: SceneCharacterRef[]
+  choices      String  // JSON: Choice[]
+  endingType   String?
+  endingTitle  String?
+  nextSceneId  String?
+  requireFlags String? // JSON: Record<string, boolean>
+  story        Story   @relation(fields: [storyId], references: [id])
+}
+
+model PanelMapping {
+  id           String  @id @default(cuid())
+  storyId      String
+  assetKey     String
+  entrySceneId String
+  initialFlags String? // JSON
+  label        String?
+  story        Story   @relation(fields: [storyId], references: [id])
+}
+
+model UserProgress {
+  id              String @id @default(cuid())
+  userId          String
+  storyId         String
+  currentSceneId  String
+  flags           String // JSON
+  history         String // JSON
+  completedEndings String // JSON
+  updatedAt       DateTime @updatedAt
+  story           Story    @relation(fields: [storyId], references: [id])
+
+  @@unique([userId, storyId])
+}
+
+model AnalyticsEvent {
+  id               String   @id @default(cuid())
+  storyId          String
+  panelCombination String
+  choicesTaken     String   // JSON
+  endingReached    String?
+  timestamp        DateTime @default(now())
+  story            Story    @relation(fields: [storyId], references: [id])
+}

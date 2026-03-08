@@ -91,6 +91,12 @@ WHAT TO AVOID:
 - Excessive positivity or cliches.
 - Therapy jargon or clinical language.
 
+PRIVACY & MASKING:
+- You may see placeholders like [EMAIL], [PHONE], or [URL] in the user's message. 
+- These are used to protect the user's privacy. 
+- Do NOT ask the user to provide these details again unless absolutely necessary for a specific coping tool.
+- Acknowledge the context naturally (e.g., if a user says "My email is [EMAIL]", you can respond with "Thanks for sharing that with me" without needing the actual email).
+
 GOAL:
 Make the user feel heard, safe, and gently supported. The interaction should feel like a kind, emotionally aware person having a natural conversation — not a therapy questionnaire.
 """
@@ -141,14 +147,24 @@ User risk level: {risk_level}
 """
         print(f"DEBUG: Gemini Request - Lang: {lang_name} ({language})")
 
-        # Using gemini-2.5-flash as it was confirmed to work with this key and v1beta API
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=prompt,
-        )
+        # Primary: models/gemini-2.5-flash
+        # Fallback: models/gemini-2.5-pro
+        try:
+            response = client.models.generate_content(
+                model="models/gemini-2.5-flash",
+                contents=prompt,
+            )
+        except Exception as flash_err:
+            print(f"WARNING: Gemini 2.5 Flash failed, trying 2.5 Pro fallback. Error: {flash_err}")
+            response = client.models.generate_content(
+                model="models/gemini-2.5-pro",
+                contents=prompt,
+            )
 
         return response.text.strip()
 
     except Exception as e:
+        import traceback
         print(f"ERROR: Gemini error: {e}")
+        traceback.print_exc()
         return "I'm here with you. Please tell me a bit more about what you're feeling."

@@ -6,16 +6,21 @@ Sends backend notifications when a high-risk crisis is detected.
 from app.syna_ai.database import get_db
 from datetime import datetime
 
+from app.syna_ai.privacy import mask_pii
 
 def send_crisis_alerts(user_id: str, role: str, user_message: str, risk_source: str) -> int:
     """
     Log a crisis event and dispatch alerts to all relevant parties.
     """
     conn, cursor = get_db()
+    
+    # Mask PII for privacy before saving to storage
+    masked_message = mask_pii(user_message)
+    
     # 1. Log crisis event to database with user isolation
     cursor.execute(
         "INSERT INTO crisis_alerts (user_id, role, message, risk_source) VALUES (?, ?, ?, ?)",
-        (user_id, role, user_message, risk_source)
+        (user_id, role, masked_message, risk_source)
     )
     conn.commit()
     alert_id = cursor.lastrowid

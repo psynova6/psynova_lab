@@ -21,6 +21,7 @@ def _migrate_schema(cursor):
         # chats: add user_id and role columns
         "ALTER TABLE chats ADD COLUMN user_id TEXT",
         "ALTER TABLE chats ADD COLUMN role TEXT",
+        "ALTER TABLE chats ADD COLUMN conversation_id TEXT",
         # moods: add user_id
         "ALTER TABLE moods ADD COLUMN user_id TEXT",
         # journals: add user_id
@@ -73,9 +74,19 @@ def get_db():
 def _init_db(cursor):
     """Initializes tables and runs migrations."""
     cursor.execute("""
+    CREATE TABLE IF NOT EXISTS conversations (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        title TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+
+    cursor.execute("""
     CREATE TABLE IF NOT EXISTS chats (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id TEXT,
+        conversation_id TEXT,
         role TEXT,
         message TEXT NOT NULL,
         risk_level TEXT NOT NULL,

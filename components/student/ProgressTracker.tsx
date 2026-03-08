@@ -7,22 +7,60 @@ interface SessionHistoryProps {
 }
 
 const SessionHistory: React.FC<SessionHistoryProps> = React.memo(({ sessionHistory }) => (
-  <div className="bg-white/60 rounded-[2rem] shadow-lg p-6 w-full">
-    <h4 className="font-bold text-brand-dark-green mb-4">Recent Sessions</h4>
+  <div
+    className="rounded-[2rem] p-6 shadow-sm border border-white/50 animate-fade-in-down"
+    style={{ background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
+  >
+    <div className="flex items-center justify-between mb-6">
+      <h3 className="font-bold text-xl text-brand-dark-green">Session History</h3>
+    </div>
+
     {sessionHistory.length > 0 ? (
-      <ul className="space-y-3">
+      // Timeline container — gradient left border from Stitch design
+      <div
+        className="relative pl-5 space-y-6"
+        style={{
+          borderLeft: '2px solid transparent',
+          backgroundImage: 'linear-gradient(white, white), linear-gradient(to bottom, #92bb80, transparent)',
+          backgroundOrigin: 'border-box',
+          backgroundClip: 'padding-box, border-box',
+        }}
+      >
         {sessionHistory.map((session, index) => (
-          <li key={index} className="flex items-center justify-between p-2 rounded-2xl hover:bg-brand-light-green/20">
-            <div className="flex items-center">
-              <CalendarIcon className="w-5 h-5 mr-3 text-brand-dark-green/70" />
-              <span className="font-medium text-brand-dark-green">{session.date} - with {session.therapistName}</span>
+          <div
+            key={index}
+            className="relative flex items-center gap-4 animate-fade-up"
+            style={{ animationDelay: `${index * 80}ms` }}
+          >
+            {/* Timeline dot — alternating primary/accent from Stitch */}
+            <div
+              className="absolute -left-[27px] w-3 h-3 rounded-full border-2 border-white"
+              style={{ background: index % 2 === 0 ? '#235328' : '#92bb80' }}
+              aria-hidden="true"
+            />
+
+            {/* Icon thumbnail */}
+            <div className="w-12 h-12 rounded-2xl bg-white shadow-sm flex items-center justify-center text-brand-dark-green border border-slate-100 shrink-0">
+              <CalendarIcon className="w-5 h-5" />
             </div>
-            <span className="text-sm text-brand-dark-green/80 font-semibold">{session.status}</span>
-          </li>
+
+            {/* Session info */}
+            <div className="flex-1 min-w-0">
+              <h4 className="font-bold text-brand-dark-green text-sm truncate">
+                {session.therapistName}
+              </h4>
+              <p className="text-xs text-brand-dark-green/50 font-medium mt-0.5">{session.date}</p>
+            </div>
+
+            {/* Status */}
+            <div className="text-right shrink-0">
+              <span className="block text-[10px] text-brand-dark-green/40 font-medium uppercase">{session.status}</span>
+            </div>
+          </div>
         ))}
-      </ul>
+      </div>
     ) : (
-      <p className="text-center text-brand-dark-green/70 py-4">You have no recent sessions.</p>
+      <p className="text-center text-brand-dark-green/60 py-4 text-sm">No sessions yet. Book your first one!</p>
     )}
   </div>
 ));
@@ -33,13 +71,7 @@ interface ProgressTrackerProps {
 
 const ProgressTracker: React.FC<ProgressTrackerProps> = React.memo(({ sessionHistory }) => {
   return (
-    <section className="py-16">
-      <div className="text-center mb-12">
-        <h2 className="text-3xl md:text-4xl font-bold text-brand-dark-green">Your Session History</h2>
-        <p className="text-lg text-brand-dark-green/80 mt-2 max-w-2xl mx-auto">
-          Review your recent therapy sessions to track your journey.
-        </p>
-      </div>
+    <section className="py-8">
       <div className="max-w-2xl mx-auto">
         <SessionHistory sessionHistory={sessionHistory} />
       </div>

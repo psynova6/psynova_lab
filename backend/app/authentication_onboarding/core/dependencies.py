@@ -38,6 +38,8 @@ async def get_current_user(
         detail="Could not validate credentials.",
         headers={"WWW-Authenticate": "Bearer"},
     )
+    import logging
+    logger = logging.getLogger("app.auth")
 
     try:
         payload = decode_token(token)
