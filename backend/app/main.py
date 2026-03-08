@@ -72,13 +72,15 @@ async def log_requests(request: Request, call_next):
     log.info(f"REQ: {request.method} {request.url.path} - {response.status_code} ({duration:.2f}s)")
     return response
 
-# Removed custom validation error handler to fix serialization issues. Default handler will be used.
 
-
-# ── CORS (adjust origins for production) ──
+# ── CORS Configuration ──
+# Explicitly allowing your frontend URL fixes security blocks in the browser
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://psynova-frontend.onrender.com", 
+        "http://localhost:5173"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -89,7 +91,6 @@ app.add_middleware(
 
 # 1. Authentication & Onboarding
 from app.authentication_onboarding import router as auth_onboarding_router  # noqa: E402
-
 app.include_router(auth_onboarding_router)
 
 # 2. User & Institution Management
@@ -104,10 +105,10 @@ app.include_router(syna_router)
 from app.games.router import router as games_router
 app.include_router(games_router)
 
-# 5. (Future components go here)
 
-
-@app.get("/", tags=["Health"])
+# ── Health Check Route ──
+# Changed to api_route to handle HEAD requests from Render's health checker
+@app.api_route("/", methods=["GET", "HEAD"], tags=["Health"])
 async def root():
-    """Health check endpoint."""
+    """Health check endpoint supporting GET and HEAD to prevent 405 errors."""
     return {"status": "ok", "service": "psynova-backend"}
