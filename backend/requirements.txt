@@ -11,7 +11,8 @@ argon2-cffi==23.1.0
 python-multipart==0.0.20
 resend==2.6.0
 google-genai==0.3.0
-torch--index-url https://download.pytorch.org/whl/cpu
+--index-url https://download.pytorch.org/whl/cpu
+torch
 transformers==4.46.3
 joblib==1.4.2
 numpy==1.26.4
