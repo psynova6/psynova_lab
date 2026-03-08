@@ -74,11 +74,13 @@ async def log_requests(request: Request, call_next):
 
 
 # ── CORS Configuration ──
-# Explicitly allowing your frontend URL fixes security blocks in the browser
+# Explicitly allowing both the base and trailing slash versions of your frontend URL
+# This fixes the "Preflight" hangs seen in the browser network logs.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "https://psynova-frontend.onrender.com", 
+        "https://psynova-frontend.onrender.com/", 
         "http://localhost:5173"
     ],
     allow_credentials=True,
@@ -107,7 +109,7 @@ app.include_router(games_router)
 
 
 # ── Health Check Route ──
-# Changed to api_route to handle HEAD requests from Render's health checker
+# api_route handles both GET and HEAD requests to prevent Render health check failures.
 @app.api_route("/", methods=["GET", "HEAD"], tags=["Health"])
 async def root():
     """Health check endpoint supporting GET and HEAD to prevent 405 errors."""
