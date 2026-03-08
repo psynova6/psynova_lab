@@ -11,11 +11,14 @@ const DailyAffirmation: React.FC<DailyAffirmationProps> = ({ affirmation }) => {
   return (
     <section className="container mx-auto px-4 sm:px-6 lg:px-8 mb-10">
       {/* shimmer-card + glass-card-60 — no overflow-hidden so quote mark is visible */}
-      <div className="shimmer-card relative bg-white/60 rounded-[2rem] shadow-sm p-6 animate-fade-in-down">
+      <div
+        className="shimmer-card relative rounded-[2rem] shadow-md p-6 animate-fade-in-down border border-brand-light-green/40"
+        style={{ background: 'linear-gradient(135deg, #a8cca0 0%, #92bb80 100%)' }}
+      >
         {/* Large decorative quote mark — inside card bounds so it renders */}
         <div
           className="absolute top-1 left-3 font-serif select-none"
-          style={{ color: 'rgba(146,187,128,0.25)', fontSize: '100px', lineHeight: 1, zIndex: 0 }}
+          style={{ color: 'rgba(35, 83, 40, 0.1)', fontSize: '100px', lineHeight: 1, zIndex: 0 }}
           aria-hidden="true"
         >
           "
@@ -23,7 +26,7 @@ const DailyAffirmation: React.FC<DailyAffirmationProps> = ({ affirmation }) => {
 
         <div className="relative flex flex-col gap-3 items-center text-center" style={{ zIndex: 1 }}>
           <div className="flex items-center gap-2">
-            <SparkleIcon className="w-5 h-5 text-brand-light-green animate-spin-slow" />
+            <SparkleIcon className="w-5 h-5 text-white animate-spin-slow" />
             <h3 className="text-xs font-bold text-brand-dark-green tracking-widest uppercase">
               Daily Affirmation
             </h3>

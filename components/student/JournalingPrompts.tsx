@@ -62,7 +62,7 @@ const notebookCSS = `
     box-shadow: 
       0 20px 50px rgba(0,0,0,0.15),
       0 5px 15px rgba(0,0,0,0.05);
-    background: #f4f4ece6; /* Base paper color */
+    background: transparent; /* Base transparency for glassmorphism */
     border-radius: 8px;
     perspective: 2000px; /* Enhanced 3D perspective for flips */
     position: relative;
@@ -72,13 +72,11 @@ const notebookCSS = `
   .page-side {
     flex: 1;
     position: relative;
-    background-color: #f2f2eb;
     height: 100%;
   }
 
   .left-page {
     border-radius: 8px 0 0 8px;
-    box-shadow: inset -20px 0 30px rgba(0,0,0,0.03);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -86,14 +84,22 @@ const notebookCSS = `
     padding: 3rem;
     z-index: 10;
     gap: 1.5rem;
+    /* Premium Glassmorphism Refined */
+    background: rgba(255, 255, 255, 0.02) !important;
+    backdrop-filter: blur(40px) saturate(200%);
+    -webkit-backdrop-filter: blur(40px) saturate(200%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-right: none;
   }
 
   .cover-logo {
-    width: 80px;
-    height: 80px;
+    width: 95%;
+    max-width: 550px;
+    height: auto;
+    max-height: 80%;
     object-fit: contain;
-    opacity: 0.35;
-    filter: grayscale(0.4);
+    opacity: 1;
+    filter: drop-shadow(0 10px 20px rgba(0,0,0,0.1));
   }
   
   .right-page-container {
@@ -173,6 +179,87 @@ const notebookCSS = `
   }
 
   /* The Spine and Binder Rings */
+  .animate-bounce-in {
+    animation: bounceIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+  }
+
+  /* --- Responsive Design Overrides --- */
+  @media (max-width: 1024px) {
+    .spread-container {
+      width: 95%;
+    }
+    .left-page {
+      padding: 2rem;
+    }
+    .right-page {
+      padding: 2rem 2rem 1.5rem 3rem;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .spread-container {
+      width: 95%;
+      height: 90vh;
+      flex-direction: column;
+    }
+    
+    /* Hide the left cover page and spine on mobile to maximize writing area */
+    .left-page {
+      display: none !important;
+    }
+    
+    .spine-container {
+      display: none !important;
+    }
+    
+    .right-page-container {
+      width: 100%;
+      height: 100%;
+    }
+    
+    .right-page {
+      border-radius: 16px; /* Round all corners since it's a standalone page now */
+      padding: 4rem 1.5rem 1.5rem 1.5rem; /* Extra top padding for the back button */
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    
+    .journal-bg-text {
+      font-size: 3rem;
+    }
+
+    .page-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .time-text {
+      align-self: flex-start;
+    }
+
+    .title-input {
+      font-size: 1.5rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .right-page {
+      padding: 4rem 1rem 1rem 1rem;
+    }
+    .page-footer {
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .pagination-controls {
+      width: 100%;
+      justify-content: space-between;
+    }
+    .action-btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
   .spine-container {
     position: absolute;
     top: 0;
@@ -590,7 +677,7 @@ const JournalingPrompts: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
           {/* Left Page — Logo Only */}
           <div className="page-side left-page">
-            <Logo className="w-32 h-32 object-contain opacity-50" />
+            <Logo className="cover-logo" />
           </div>
 
           {/* Full Height Photorealistic Spine */}

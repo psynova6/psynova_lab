@@ -130,18 +130,16 @@ const TherapistDashboard: React.FC<TherapistDashboardProps> = ({ userProfile, on
                     <motion.div
                         initial={{ opacity: 0, scale: 0.98 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        style={{ backgroundColor: P.bg, minHeight: '100%', borderRadius: '32px', padding: '2rem 3rem', fontFamily: 'system-ui, -apple-system, sans-serif' }}
+                        className="bg-white/40 backdrop-blur-md rounded-[2rem] p-4 sm:p-8 md:p-12 shadow-premium border border-white/20 h-full"
                     >
-                        <div style={{ display: 'flex', alignItems: 'center', position: 'relative', marginBottom: '2rem', minHeight: '40px' }}>
-                            <div style={{ position: 'absolute', left: 0, right: 0, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
-                                <h1 style={{ fontSize: '2rem', fontWeight: 600, color: P.textMain, margin: 0, pointerEvents: 'auto' }}>
-                                    Good morning, {profile.name.split(' ')[0]}
-                                </h1>
-                            </div>
+                        <div className="relative mb-6 sm:mb-8 md:mb-10 text-center">
+                            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-brand-dark-green">
+                                Good morning, {profile.name.split(' ')[0]}
+                            </h1>
                         </div>
 
-                        <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginBottom: '2.5rem' }}>
-                            <div style={{ display: 'flex', background: P.tabBg, padding: '0.35rem', borderRadius: '999px', gap: '0.25rem' }}>
+                        <div className="flex justify-center mb-8 sm:mb-10 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
+                            <div className="flex bg-white/50 backdrop-blur-sm p-1 rounded-full gap-1 shadow-sm border border-brand-light-green/10 whitespace-nowrap">
                                 {[
                                     { id: 'connections', label: 'Connections', icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg> },
                                     { id: 'departments', label: 'Departments', icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg> },
@@ -155,15 +153,13 @@ const TherapistDashboard: React.FC<TherapistDashboardProps> = ({ userProfile, on
                                             onClick={() => setActiveTab(t.id as any)}
                                             whileHover={{ scale: 1.05 }}
                                             whileTap={{ scale: 0.95 }}
-                                            style={{
-                                                display: 'flex', alignItems: 'center', gap: '0.5rem',
-                                                padding: '0.6rem 1.25rem', borderRadius: '999px',
-                                                border: 'none', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 600,
-                                                background: isActive ? P.tabActiveBg : 'transparent',
-                                                color: isActive ? P.tabActiveText : P.tabInactiveText,
-                                                transition: 'background 0.2s, color 0.2s',
-                                                boxShadow: isActive ? '0 4px 12px rgba(124, 162, 131, 0.3)' : 'none'
-                                            }}
+                                            className={`
+                                                flex items-center gap-2 px-4 py-2 sm:px-6 sm:py-2.5 rounded-full 
+                                                text-sm sm:text-base font-semibold transition-all duration-300
+                                                ${isActive
+                                                    ? 'bg-brand-dark-green text-white shadow-lg shadow-brand-dark-green/20'
+                                                    : 'text-brand-dark-green/60 hover:text-brand-dark-green hover:bg-white/50'}
+                                            `}
                                         >
                                             <span style={{ display: 'flex', alignItems: 'center', opacity: isActive ? 1 : 0.7 }}>{t.icon}</span>
                                             {t.label}
