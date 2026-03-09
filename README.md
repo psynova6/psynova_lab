@@ -68,7 +68,7 @@ The application is architected to be performant, maintainable, and scalable.
 
 ## Privacy & Security
 
-User privacy is a cornerstone of Psynera. As detailed in the Terms of Service:
+User privacy is a cornerstone of Psynova. As detailed in the Terms of Service:
 - All sensitive user data is handled with care.
 - Chat data is temporary and can be deleted by the user.
 - The platform is committed to transparent data practices and gives users full control over their information.
