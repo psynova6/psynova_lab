@@ -22,3 +22,10 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+
+# ML Models
+models/
+*.pt
+*.bin
+*.onnx
+*.safetensors

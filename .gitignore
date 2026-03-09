@@ -21,3 +21,10 @@ build/
 .stitch/
 .stitch-ui/
 .gemini/
+
+# ML Models
+models/
+*.pt
+*.bin
+*.onnx
+*.safetensors

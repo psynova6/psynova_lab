@@ -1,6 +1,5 @@
 import os
 import numpy as np
-import torch
 import functools
 from app.syna_ai.config import MODELS_DIR
 
@@ -24,6 +23,7 @@ def _get_embedding(text):
         return np.zeros(768)
     
     with torch.no_grad():
+        import torch
         inputs = _tokenizer(text, return_tensors="pt", truncation=True, padding="max_length", max_length=96).to(_device)
         outputs = _bert_model(**inputs)
         return outputs.last_hidden_state[:, 0, :].cpu().numpy()[0]
@@ -32,6 +32,7 @@ def _load_resources():
     global _temporal_model, _tokenizer, _bert_model, _device
     
     if _temporal_model is None:
+        import torch
         try:
             torch.set_num_threads(1)
             import torch.nn as nn
@@ -108,6 +109,7 @@ def predict_temporal_risk_lstm(history_texts: list) -> int:
         for text in seq_texts:
             embeddings.append(_get_embedding(text))
         
+        import torch
         # Shape: (1, 5, 768)
         input_tensor = torch.tensor(np.array([embeddings]), dtype=torch.float32).to(_device)
         
@@ -139,6 +141,7 @@ def get_probabilities(history_texts: list):
         for text in seq_texts:
             embeddings.append(_get_embedding(text))
         
+        import torch
         input_tensor = torch.tensor(np.array([embeddings]), dtype=torch.float32).to(_device)
         
         with torch.no_grad():
