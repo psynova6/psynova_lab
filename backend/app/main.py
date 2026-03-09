@@ -79,15 +79,9 @@ async def log_requests(request: Request, call_next):
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-<<<<<<< HEAD
-        "https://psynova-frontend.onrender.com", 
-        "https://psynova-frontend.onrender.com/", 
-        "http://localhost:5173"
-=======
         "http://localhost:3000",
         "http://localhost:5173",
-        "https://my-frontend.onrender.com",
->>>>>>> ea8a775 (Updated for Deployment)
+        "https://psynova-frontend.onrender.com"
     ],
     allow_credentials=True,
     allow_methods=["*"],
