@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-const SYNA_BASE_URL = 'http://localhost:8000/syna/';
-const AUTH_API_URL = 'http://localhost:8000/api/auth';
+const SYNA_BASE_URL = `${import.meta.env.VITE_API_URL}/syna/`;
+const AUTH_API_URL = `${import.meta.env.VITE_API_URL}/api/auth`;
 
 const synaClient = axios.create({
     baseURL: SYNA_BASE_URL,
